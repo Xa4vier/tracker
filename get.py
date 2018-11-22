@@ -9,6 +9,12 @@ def select_all_category_names():
     cursor.execute('SELECT name FROM category')
     return cursor.fetchall()
 
+def select_all_from_category():
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute('SELECT * FROM category')
+    return cursor.fetchall()
+
 def select_category_by_id(id):
     connection = get_connection()
     cursor = connection.cursor()
@@ -26,3 +32,8 @@ def select_time_by_date_endtime_cid(id, date):
     cursor = connection.cursor()
     cursor.execute(f"SELECT * FROM time WHERE categoryId = {id} AND end IS NULL AND dateOf = '{date}'")
     return cursor.fetchall()
+
+# def select_time_by_start_end(id, date, week):
+#     connection = get_connection()
+#     cursor = connection.cursor()
+#     cursor.execute = cursor.execute

@@ -8,11 +8,14 @@
 
 # python tkinter
 from tkinter import *
-import datetime
+from datetime import *
 
 from get import *
 from insert import *
 from update import *
+
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 
 def main_window(window): 
     
@@ -50,37 +53,48 @@ def main_window(window):
             lblWarning.configure(text='alleen getallen')
 
     def proces_once(category):
-        date =  datetime.datetime.today().strftime('%Y-%m-%d')
+        date =  datetime.today().strftime('%Y-%m-%d')
         if len(select_once_by_cid_and_date(category[0], date)) == 0:
             insert_once(category[0], date)
             lblWarning.configure(text='Gelukt!')
         else :
             lblWarning.configure(text='Is al opgeslagen')   
 
+    # new windows
     def new_category():
         hide_all_main()
         new_category_window(window)
 
+    def make_plot():
+        hide_all_main()
+        plot_canvas(window)
+
     def hide_all_main():
         # buttons
         btnSSM.grid_remove()
-        btnNew.grid_remove()
+        btnCategory.grid_remove()
+        btnPlot.grid_remove()
         
         # radio boxes
         for i in rads:
             i.grid_remove()
 
+        # entries
+        entryMoney.grid_remove()
+
         # labels
         lblWarning.grid_remove()
+        lblMoney.grid_remove()
 
     ### window settings ###
     window.title("Tracker - Main")
-    window.geometry('400x400')
+    window.geometry('500x400')
 
     ### instantiate widgets ###
     # buttons
     btnSSM = Button(window, text="Start/Stop/Amount", command=add_activity, width = 30, height = 10, fg="green") 
-    btnNew = Button(window, text="nieuwe categorie", command=new_category) 
+    btnCategory = Button(window, text="nieuwe categorie", command=new_category, width = 14, height = 1) 
+    btnPlot = Button(window, text="plot", command=make_plot, width = 14, height = 1) 
 
     # radio boxes
     selected = IntVar()
@@ -100,8 +114,9 @@ def main_window(window):
 
     ### set grid ###
     # buttons
-    btnSSM.grid(row=0)
-    btnNew.grid(column=1, row=0)
+    btnSSM.grid()
+    btnCategory.grid(column=1, row=2)
+    btnPlot.grid(column=1, row=3)
 
     # radio buttons
     for i in range(len(rads)):
@@ -188,20 +203,71 @@ def new_category_window(window):
     lblName.grid(row=1, column=2)
     lblPoints.grid(row=5, column=2)
 
-def plot_window(window):
-    ### title ###
-    window.title("Tracker - Plot")
+def plot_canvas(window):
     ### function part of the new category window function
+    def go_main_window():
+        hide_all_canvas()
+        main_window(window)
+
+    def hide_all_canvas():
+        canvas.get_tk_widget().destroy()
+        btnMain.pack_forget()
+
+    def set_canvas_this_week():
+        dt = datetime.today()
+        start = dt - timedelta(days=dt.weekday())
+        end = start + timedelta(days=6)
+        categories = select_all_from_category()
+        pass
+        #for category in categories:
+        
+            #if category[]
+
+
+    def calculate_points():
+        pass
+
+    ### title ###
+    window.title('Tracker - Plot')
+    window.geometry('700x600')
 
     ### instantiate widgets ###
-    # buttons
+    # figure
+    figure = Figure(figsize=(5,5), dpi=100)
+    subplot = figure.add_subplot(111)
+    subplot.plot(range(100), range(100))
 
-    ### set grid ###
+    # canvas
+    canvas = FigureCanvasTkAgg(figure, window)
+    canvas.show()
+    canvas.get_tk_widget().pack(side = BOTTOM, fill = X, expand = TRUE)
+
+    btnMain = Button(window, text="main", command=go_main_window, width = 14, height = 1) 
+    btnThisWeek = Button(window, text="this week", command=set_canvas_this_week, width = 14, height = 1) 
+    btnThisMonth = Button(window, text="this Month", command=go_main_window, width = 14, height = 1) 
+    btnThisYear = Button(window, text="this Year", command=go_main_window, width = 14, height = 1) 
+    btnLastWeek = Button(window, text="<< week", command=go_main_window, width = 14, height = 1) 
+    btnNextWeek = Button(window, text=" week >>", command=go_main_window, width = 14, height = 1) 
+    btnLastMonth = Button(window, text="<< month", command=go_main_window, width = 14, height = 1) 
+    btnNextMonth = Button(window, text="monthh >>", command=go_main_window, width = 14, height = 1) 
+
+    ### set pack ###
+    
+    # buttons
+    btnMain.pack()
+    btnThisWeek.pack()
+    btnThisMonth.pack()
+    btnThisYear.pack()
+    btnLastWeek.pack(side=LEFT)
+    btnNextWeek.pack(side=RIGHT)
+    btnLastMonth.pack(side=LEFT)
+    btnNextMonth.pack(side=RIGHT)
 
 # set window
 window = Tk()
 
 # load main window layout
+#plot_canvas(window)
 main_window(window)
 
 # window main loop
