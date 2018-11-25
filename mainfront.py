@@ -17,6 +17,9 @@ from update import *
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 
+def days_hours_minutes(td):
+    return td.seconds//3600, (td.seconds//60)%60 # hours, minutes
+
 def main_window(window): 
     
     ### function part of the main window function
@@ -34,8 +37,8 @@ def main_window(window):
                 proces_once(category)
 
     def proces_time(category):
-        date =  datetime.datetime.today().strftime('%Y-%m-%d')
-        time = datetime.datetime.today().strftime('%H:%M:%S')
+        date =  datetime.today().strftime('%Y-%m-%d')
+        time = datetime.today().strftime('%H:%M:%S')
         if len(select_time_by_date_endtime_cid(category[0], date)) == 0:
             insert_time_start(category[0], date, time)
         else :
@@ -206,50 +209,191 @@ def new_category_window(window):
 def plot_canvas(window):
     ### function part of the new category window function
     def go_main_window():
-        hide_all_canvas()
+        forget_all_canvas()
         main_window(window)
 
-    def hide_all_canvas():
+    def forget_all_canvas():
+        # canvas
         canvas.get_tk_widget().destroy()
+        # buttons
         btnMain.pack_forget()
+        btnThisWeek.pack_forget() 
+        btnThisMonth.pack_forget() 
+        btnThisYear.pack_forget() 
+        btnLastWeek.pack_forget()
+        btnNextWeek.pack_forget()
+        btnLastMonth.pack_forget()
+        btnNextMonth.pack_forget() 
+        lblWarnig.pack_forget()
 
-    def set_canvas_this_week():
+    def hide_warnings():
+        lblWarnig.configure(text = '')
+
+    def set_this_week():
+        global start, end, week_select, month_select, year_select
+        week_select, month_select, year_select = True, False, False
+        hide_warnings()
         dt = datetime.today()
         start = dt - timedelta(days=dt.weekday())
         end = start + timedelta(days=6)
+        set_canvas(start, end, calculate_points_by_range_date(start, end), 'This Week', range(1, 8), 'Days', 'Points', [min, 30])
+    
+    def last_week():
+        global start, end       
+        hide_warnings()
+        if week_select :
+            start -= timedelta(days=2)
+            start -= timedelta(days=start.weekday())
+            end = start + timedelta(days=6)
+            set_canvas(start, end, calculate_points_by_range_date(start, end), 'last Week', range(1, 8), 'Days', 'Points', [min, 30])
+    
+        else :
+            lblWarnig.configure(text = 'Alleen als weken zijn geselecteerd')
+    
+    def next_week():
+        global start, end       
+        hide_warnings()
+        if week_select :
+            end += timedelta(days=2)
+            start = end - timedelta(days=end.weekday())
+            end = start + timedelta(days=6)
+            set_canvas(start, end, calculate_points_by_range_date(start, end), 'Next Week', range(1, 8), 'Days', 'Points', [min, 30])
+    
+        else :
+            lblWarnig.configure(text = 'Alleen als weken zijn geselecteerd')
+
+    def set_this_month():
+        hide_warnings()
+        week_select, month_select, year_select = False, True, False
+        dt = datetime.today()
+        start = dt - timedelta(days=dt.day - 1)
+        next_month = start.replace(day=28) + timedelta(days=4)  # this will never fail
+        end = next_month - timedelta(days=next_month.day)
+        set_canvas(start, end, calculate_points_by_range_date(start, end), 'This Month', range(1, end.day + 1), 'Days', 'Points', [min, 30])
+
+    def set_canvas(start, end, points, title, xAxes, xLabel, yLabel, axHline):
+        global canvas
+        canvas.get_tk_widget().destroy()
+        start = start.strftime('%d-%m-%Y')
+        end = end.strftime('%d-%m-%Y')
+        canvas = show_canvas(range(1, len(points) + 1), points, f'{title} - {start} - {end}', xAxes, xLabel, yLabel, axHline)
+
+    def calculate_points_by_range_date(start, end):
         categories = select_all_from_category()
-        pass
-        #for category in categories:
+        points = []
+        for category in categories:
+            if category[2] == 1: # time
+                allTime = select_time_by_start_end(category[0], start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
+                points.append(calculate_points_category(category, start, end, allTime, calculate_points_time))
+            elif category[3] == 1: # money
+                allMoneys = select_money_by_start_end(category[0], start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
+                points.append(calculate_points_category(category, start, end, allMoneys, calculate_points_money))
+            elif category[4] == 1: # once
+                allOnces = select_once_by_start_end(category[0], start.strftime('%Y-%m-%d'), end.strftime('%d-%m-%Y'))
+                points.append(calculate_points_category(category, start, end, allOnces, calculate_points_once))
+        return combine_points_on_day(points)
+
+    def combine_points_on_day(points):
+        pointsToReturn = [0] * len(points[0])
+        for i in range(len(points[0])):
+            for row in points:
+                pointsToReturn[i] += row[i]
+        return pointsToReturn
+
+    # gets a function to calculate the categories 
+    def calculate_points_category(category, start, end, dataset, func):
+        if end.day > start.day : # like start = 23/5 end = 30/5
+            points = [0] * (end.day - start.day + 1)
+            i = 0
+            for day in range(start.day, end.day + 1):
+                func(category, points, day, dataset, i)
+                i += 1
+            
+        else : # like start = 30/5 end = 6/6 
+            next_month = start.replace(day=28) + timedelta(days=4)  # this will never fail
+            endMonth = next_month - timedelta(days=next_month.day)
+            points = [0] * (end.day + endMonth.day - start.day + 1)           
+            day = start.day
+            for i in range(len(points)):
+                func(category, points, day, dataset, i)
+                if day == endMonth.day:
+                    day = 0
+                day += 1
+
+        return [int(p) for p in points]
+
+    def calculate_points_time(category, points, day, allTimes, i):
+        for time in allTimes:
+            if time[2].day == day:
+                        hours, minutes = days_hours_minutes(time[4] - time[3])
+                        points[i] += category[5] * hours + (minutes/60) * category[5]
+
+    def calculate_points_money(category, points, day, allMoneys, i):
+            for money in allMoneys:
+                if money[3].day == day:
+                    points[i] += category[5] * money[2]
+
+    # calculate all the point for a category where there is a once
+    def calculate_points_once(category, points, day, allOnces, i):
+            for once in allOnces:
+                if once[2].day == day:
+                    points[i] += category[5]
+
+    # canvas object is returned so that other child functions can access it
+    def show_canvas(x, y, title, xAxes = False, xLabel = False, yLabel = False, axHline = False):
+        # figure
+        figure = Figure(figsize=(5,5), dpi=100)
+        subplot = figure.add_subplot(111)
         
-            #if category[]
+        # set subplot
+        subplot.set_title(title)
+        subplot.plot(x, y, color='orange')
+        subplot.bar(x, y,)
+        subplot.axhline(0 ,c="black",linewidth=1)
 
+        if xAxes : subplot.set_xticks(xAxes)
+        if xLabel : subplot.set_xlabel(xLabel)
+        if yLabel : subplot.set_ylabel(yLabel)
+        if axHline : 
+            subplot.axhline(axHline[0] ,c="red",linewidth=1)
+            subplot.axhline(axHline[1] ,c="blue",linewidth=1)
 
-    def calculate_points():
-        pass
+        subplot.set_yticks(range(-200, 201, 25))
 
+        # canvas
+        canvas = FigureCanvasTkAgg(figure, window)
+        canvas.show()
+        canvas.get_tk_widget().pack(side = BOTTOM, fill = X, expand = TRUE)
+        return canvas
+       
     ### title ###
     window.title('Tracker - Plot')
-    window.geometry('700x600')
+    window.geometry('1400x600')
 
+    # variables 
+    min = 20
+    global start, end, week_select, month_select, year_select
+    start = datetime.today()
+    week_select = False
+    month_select = False
+    year_select = False
+    
     ### instantiate widgets ###
-    # figure
-    figure = Figure(figsize=(5,5), dpi=100)
-    subplot = figure.add_subplot(111)
-    subplot.plot(range(100), range(100))
+    global canvas
+    canvas = show_canvas(range(7), range(7), 'dummie')
 
-    # canvas
-    canvas = FigureCanvasTkAgg(figure, window)
-    canvas.show()
-    canvas.get_tk_widget().pack(side = BOTTOM, fill = X, expand = TRUE)
-
+    # buttons
     btnMain = Button(window, text="main", command=go_main_window, width = 14, height = 1) 
-    btnThisWeek = Button(window, text="this week", command=set_canvas_this_week, width = 14, height = 1) 
-    btnThisMonth = Button(window, text="this Month", command=go_main_window, width = 14, height = 1) 
+    btnThisWeek = Button(window, text="this week", command=set_this_week, width = 14, height = 1) 
+    btnThisMonth = Button(window, text="this Month", command=set_this_month, width = 14, height = 1) 
     btnThisYear = Button(window, text="this Year", command=go_main_window, width = 14, height = 1) 
-    btnLastWeek = Button(window, text="<< week", command=go_main_window, width = 14, height = 1) 
-    btnNextWeek = Button(window, text=" week >>", command=go_main_window, width = 14, height = 1) 
+    btnLastWeek = Button(window, text="<< week", command=last_week, width = 14, height = 1) 
+    btnNextWeek = Button(window, text=" week >>", command=next_week, width = 14, height = 1) 
     btnLastMonth = Button(window, text="<< month", command=go_main_window, width = 14, height = 1) 
     btnNextMonth = Button(window, text="monthh >>", command=go_main_window, width = 14, height = 1) 
+
+    # labels
+    lblWarnig = Label(window, fg='red')
 
     ### set pack ###
     
@@ -263,12 +407,17 @@ def plot_canvas(window):
     btnLastMonth.pack(side=LEFT)
     btnNextMonth.pack(side=RIGHT)
 
+    # labels
+    lblWarnig.pack(side=BOTTOM)
+
+    set_this_week()
+
 # set window
 window = Tk()
 
 # load main window layout
-#plot_canvas(window)
-main_window(window)
+plot_canvas(window)
+# main_window(window)
 
 # window main loop
 window.mainloop()

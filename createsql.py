@@ -1,4 +1,5 @@
 from connection import create_connection
+from datetime import *
 
 # Get a cursor object
 connection = create_connection()
@@ -28,7 +29,7 @@ params = ('werken', True, False, False, 1)
 cursor = connection.cursor()
 cursor.execute('INSERT INTO category (name, time, money, once, points) VALUES(%s, %s, %s, %s, %s)', params)
 
-params = ('wiet_roken', False, True, False, 3)
+params = ('wiet_roken', False, True, False, -3)
 cursor.execute('INSERT INTO category (name, time, money, once, points) VALUES(%s, %s, %s, %s, %s)', params)
 
 params = ('ochtend_sporten', False, False, True, 2)
@@ -69,56 +70,111 @@ params = (3, '2018-11-25')
 cursor.execute('INSERT INTO once (categoryId, dateOf) VALUES(%s, %s)', params)
 
 # money
-params = (3, 10, '2018-11-19')
-cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+dt = datetime.strptime('2018-10-1', '%Y-%m-%d')
+for i in range(1, 100):
+    params = (2, i, dt.strftime('%Y-%m-%d'))
+    cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+    dt += timedelta(days=1)
 
-params = (3, 10, '2018-11-20')
-cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+# params = (2, 10, '2018-11-17')
+# cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
 
-params = (3, 10, '2018-11-22')
-cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+# params = (2, 10, '2018-11-18')
+# cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
 
-params = (3, 10, '2018-11-23')
-cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+# params = (2, 10, '2018-11-19')
+# cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
 
-params = (3, 10, '2018-11-24')
-cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+# params = (2, 10, '2018-11-20')
+# cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
 
-params = (3, 10, '2018-11-25')
-cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+# params = (2, 10, '2018-11-22')
+# cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+
+# params = (2, 10, '2018-11-23')
+# cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+
+# params = (2, 10, '2018-11-24')
+# cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+
+# params = (2, 10, '2018-11-25')
+# cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+
+# params = (2, 10, '2018-11-26')
+# cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+
+# params = (2, 10, '2018-11-27')
+# cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+
+# params = (2, 10, '2018-11-28')
+# cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+
+# params = (2, 10, '2018-11-29')
+# cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+
+# params = (2, 10, '2018-11-30')
+# cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+
+# params = (2, 10, '2018-12-1')
+# cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+
+# params = (2, 10, '2018-12-2')
+# cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+
+# params = (2, 10, '2018-12-3')
+# cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+
+# params = (2, 10, '2018-12-4')
+# cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+
+# params = (2, 10, '2018-12-5')
+# cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
+
 
 # time
-params = (3, '2018-11-19', '9:00:00', '13:00:00')
+params = (1, '2018-11-17', '9:00:00', '13:00:00')
 cursor.execute('INSERT INTO time (categoryId, dateOf, start, end) VALUES(%s, %s, %s, %s)', params)
 
-params = (3, '2018-11-24', '15:23:12', '17:54:45')
+params = (1, '2018-11-18', '9:00:00', '13:00:00')
 cursor.execute('INSERT INTO time (categoryId, dateOf, start, end) VALUES(%s, %s, %s, %s)', params)
 
-params = (3, '2018-11-20', '9:00:00', '13:00:00')
+params = (1, '2018-11-19', '9:00:00', '13:00:00')
 cursor.execute('INSERT INTO time (categoryId, dateOf, start, end) VALUES(%s, %s, %s, %s)', params)
 
-params = (3, '2018-11-24', '15:23:12', '17:54:45')
+params = (1, '2018-11-19', '15:23:12', '17:54:45')
 cursor.execute('INSERT INTO time (categoryId, dateOf, start, end) VALUES(%s, %s, %s, %s)', params)
 
-params = (3, '2018-11-21', '9:00:00', '13:00:00')
+params = (1, '2018-11-20', '9:00:00', '13:00:00')
 cursor.execute('INSERT INTO time (categoryId, dateOf, start, end) VALUES(%s, %s, %s, %s)', params)
 
-params = (3, '2018-11-24', '15:23:12', '17:54:45')
+params = (1, '2018-11-20', '15:23:12', '17:54:45')
 cursor.execute('INSERT INTO time (categoryId, dateOf, start, end) VALUES(%s, %s, %s, %s)', params)
 
-params = (3, '2018-11-22', '9:00:00', '13:00:00')
+params = (1, '2018-11-21', '9:00:00', '13:00:00')
 cursor.execute('INSERT INTO time (categoryId, dateOf, start, end) VALUES(%s, %s, %s, %s)', params)
 
-params = (3, '2018-11-24', '15:23:12', '17:54:45')
+params = (1, '2018-11-21', '15:23:12', '17:54:45')
 cursor.execute('INSERT INTO time (categoryId, dateOf, start, end) VALUES(%s, %s, %s, %s)', params)
 
-params = (3, '2018-11-23', '9:00:00', '13:00:00')
+params = (1, '2018-11-22', '9:00:00', '13:00:00')
 cursor.execute('INSERT INTO time (categoryId, dateOf, start, end) VALUES(%s, %s, %s, %s)', params)
 
-params = (3, '2018-11-24', '15:23:12', '17:54:45')
+params = (1, '2018-11-22', '15:23:12', '17:54:45')
 cursor.execute('INSERT INTO time (categoryId, dateOf, start, end) VALUES(%s, %s, %s, %s)', params)
 
-params = (3, '2018-11-24', '9:00:00', '13:00:00')
+params = (1, '2018-11-23', '9:00:00', '13:00:00')
+cursor.execute('INSERT INTO time (categoryId, dateOf, start, end) VALUES(%s, %s, %s, %s)', params)
+
+params = (1, '2018-11-23', '15:23:12', '17:54:45')
+cursor.execute('INSERT INTO time (categoryId, dateOf, start, end) VALUES(%s, %s, %s, %s)', params)
+
+params = (1, '2018-11-24', '9:00:00', '13:00:00')
+cursor.execute('INSERT INTO time (categoryId, dateOf, start, end) VALUES(%s, %s, %s, %s)', params)
+
+params = (1, '2018-11-26', '9:00:00', '13:00:00')
+cursor.execute('INSERT INTO time (categoryId, dateOf, start, end) VALUES(%s, %s, %s, %s)', params)
+
+params = (1, '2018-11-27', '9:00:00', '13:00:00')
 cursor.execute('INSERT INTO time (categoryId, dateOf, start, end) VALUES(%s, %s, %s, %s)', params)
 
 # commit changes

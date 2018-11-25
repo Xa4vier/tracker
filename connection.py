@@ -7,4 +7,4 @@ def create_connection():
         passwd='****',
         database='****',
         auth_plugin='mysql_native_password'
-    )
+        )   
