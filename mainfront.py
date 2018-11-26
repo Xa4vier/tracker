@@ -115,7 +115,7 @@ def main_window(window):
     lblMoney = Label(window, text='Geld:', fg='blue')
     lblWarning = Label(window, fg='red')
 
-    ### set grid ###
+    ### set Grid ###
     # buttons
     btnSSM.grid()
     btnCategory.grid(column=1, row=2)
