@@ -151,28 +151,28 @@ def new_category_window(window):
         entryPoints.configure(text='')
         
     def load_main_window():
-        hide_all_new()
+        forget_all_new()
         main_window(window)
 
-    def hide_all_new():
+    def forget_all_new():
         # buttons
-        btnMain.grid_remove()
-        btnAdd.grid_remove()
+        btnMain.place_forget()
+        btnAdd.place_forget()
         # radio buttons
-        rbMoney.grid_remove()
-        rbTime.grid_remove()
-        rbOnce.grid_remove()
+        rbMoney.place_forget()
+        rbTime.place_forget()
+        rbOnce.place_forget()
         # entries
-        entryName.grid_remove()
-        entryPoints.grid_remove()
+        entryName.place_forget()
+        entryPoints.place_forget()
         # labels
-        lblName.grid_remove()
-        lblPoints.grid_remove()
+        lblName.place_forget()
+        lblPoints.place_forget()
 
 
     ### window settings ###
     window.title("Tracker - Nieuwe categorie")
-    window.geometry('300x200')
+    window.geometry('300x250')
 
     ### instantiate widgets ###
     # buttons
@@ -190,26 +190,28 @@ def new_category_window(window):
     rbOnce = Radiobutton(window,text='Eenmalig', value=3, variable=selected) 
 
     # labels
-    lblName = Label(window, text='Naam')
-    lblPoints = Label(window, text='Punten')
+    lblName = Label(window, text='Naam', fg='blue')
+    lblPoints = Label(window, text='Punten', fg='blue')
 
     ### set grid ###
+    xC = 60
+    btn_size = 190
     # buttons
-    btnAdd.grid(row=6)
-    btnMain.grid(row=7)
+    btnAdd.place(x = xC + 1, y = 155, width = btn_size)
+    btnMain.place(x = xC + 1, y = 195, width = btn_size)
 
     # text fields
-    entryName.grid(row=1)
-    entryPoints.grid(row=5)
+    entryName.place(x = xC, y = 5)
+    entryPoints.place(x = xC, y = 120)
 
     # radio buttons
-    rbTime.grid(row=2)
-    rbMoney.grid(row=3)
-    rbOnce.grid(row=4)
+    rbTime.place(x = xC, y = 45)
+    rbMoney.place(x = xC, y = 70)
+    rbOnce.place(x = xC, y = 95)
 
     # labels
-    lblName.grid(row=1, column=2)
-    lblPoints.grid(row=5, column=2)
+    lblName.place(x = 5, y = 5)
+    lblPoints.place(x = 5, y = 120)
 
 def plot_canvas(window):
     ### function part of the new category window function
@@ -423,7 +425,8 @@ def plot_canvas(window):
 window = Tk()
 
 # load main window layout
-main_window(window)
+# main_window(window)
+new_category_window(window)
 
 # window main loop
 window.mainloop()
