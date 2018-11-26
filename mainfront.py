@@ -65,34 +65,36 @@ def main_window(window):
 
     # new windows
     def new_category():
-        hide_all_main()
+        forget_all_main()
         new_category_window(window)
 
     def make_plot():
-        hide_all_main()
+        forget_all_main()
         plot_canvas(window)
 
-    def hide_all_main():
+    def forget_all_main():
         # buttons
-        btnSSM.grid_remove()
-        btnCategory.grid_remove()
-        btnPlot.grid_remove()
+        btnSSM.place_forget()
+        btnCategory.place_forget()
+        btnPlot.place_forget()
         
         # radio boxes
         for i in rads:
-            i.grid_remove()
+            i.place_forget()
 
         # entries
-        entryMoney.grid_remove()
+        entryMoney.place_forget()
 
         # labels
-        lblWarning.grid_remove()
-        lblMoney.grid_remove()
+        lblWarning.place_forget()
+        lblMoney.place_forget()
 
     ### window settings ###
     window.title("Tracker - Main (dev)")
     # width x height + x_offset + y_offset:
     window.geometry('500x400+30+30')
+
+    nav_size = 150
 
     ### instantiate widgets ###
     # buttons
@@ -118,21 +120,22 @@ def main_window(window):
 
     ### set geo ###
     # buttons
-    btnssm.place(x = 10, y = 10 ,width = 30, height = 10)
-    # btnSSM.grid()
-    # btnCategory.grid(column=1, row=2)
-    # btnPlot.grid(column=1, row=3)
+    btnSSM.place(x = 10, y = 40 ,width = 250, height = 150)
+    
+    # nav buttons
+    btnCategory.place(x = 10, y = 10, width = nav_size)
+    btnPlot.place(x = (nav_size + 20) * 1, y = 10, width = nav_size)
 
-    # # radio buttons
-    # for i in range(len(rads)):
-    #     rads[i].grid(row=i+3)
+    # radio buttons
+    for i in range(len(rads)):
+         rads[i].place(x = 40, y = 240 + 25 * i)
 
-    # # entry
-    # entryMoney.grid(row=len(rads) + 4)
+    # entry
+    entryMoney.place(x = 50, y = 260 + len(rads) * 25)
 
-    # # labels
-    # lblMoney.grid(row=len(rads) + 3)
-    # lblWarning.grid(row=2)
+    # labels
+    lblMoney.place(x = 10, y = 260 + len(rads) * 25)
+    lblWarning.place(x = 40, y = 210)
 
 def new_category_window(window):
     
