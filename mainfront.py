@@ -219,7 +219,7 @@ def plot_canvas(window):
         btnMain.pack_forget()
         btnThisWeek.pack_forget() 
         btnThisMonth.pack_forget() 
-        btnThisYear.pack_forget() 
+        #btnThisYear.pack_forget() 
         btnLastWeek.pack_forget()
         btnNextWeek.pack_forget()
         btnLastMonth.pack_forget()
@@ -230,9 +230,7 @@ def plot_canvas(window):
         lblWarnig.configure(text = '')
 
     def set_this_week():
-        global start, end, week_select, month_select, year_select
-        week_select, month_select, year_select = True, False, False
-        hide_warnings()
+        global start, end
         dt = datetime.today()
         start = dt - timedelta(days=dt.weekday())
         end = start + timedelta(days=6)
@@ -240,36 +238,39 @@ def plot_canvas(window):
     
     def last_week():
         global start, end       
-        hide_warnings()
-        if week_select :
-            start -= timedelta(days=2)
-            start -= timedelta(days=start.weekday())
-            end = start + timedelta(days=6)
-            set_canvas(start, end, calculate_points_by_range_date(start, end), 'last Week', range(1, 8), 'Days', 'Points', [min, 30])
-    
-        else :
-            lblWarnig.configure(text = 'Alleen als weken zijn geselecteerd')
-    
+        start -= timedelta(days=2)
+        start -= timedelta(days=start.weekday())
+        end = start + timedelta(days=6)
+        set_canvas(start, end, calculate_points_by_range_date(start, end), 'last Week', range(1, 8), 'Days', 'Points', [min, 30])
+
     def next_week():
         global start, end       
-        hide_warnings()
-        if week_select :
-            end += timedelta(days=2)
-            start = end - timedelta(days=end.weekday())
-            end = start + timedelta(days=6)
-            set_canvas(start, end, calculate_points_by_range_date(start, end), 'Next Week', range(1, 8), 'Days', 'Points', [min, 30])
-    
-        else :
-            lblWarnig.configure(text = 'Alleen als weken zijn geselecteerd')
+        end += timedelta(days=2)
+        start = end - timedelta(days=end.weekday())
+        end = start + timedelta(days=6)
+        set_canvas(start, end, calculate_points_by_range_date(start, end), 'Next Week', range(1, 8), 'Days', 'Points', [min, 30])
 
     def set_this_month():
-        hide_warnings()
-        week_select, month_select, year_select = False, True, False
-        dt = datetime.today()
+        global start, end
+        dt = datetime.today()        
         start = dt - timedelta(days=dt.day - 1)
         next_month = start.replace(day=28) + timedelta(days=4)  # this will never fail
         end = next_month - timedelta(days=next_month.day)
         set_canvas(start, end, calculate_points_by_range_date(start, end), 'This Month', range(1, end.day + 1), 'Days', 'Points', [min, 30])
+
+    def next_month():
+        global start, end       
+        end += timedelta(days=2)
+        start = end - timedelta(days=end.day - 1)
+        next_month = end.replace(day=28) + timedelta(days=4)
+        end = next_month - timedelta(days=next_month.day)
+        set_canvas(start, end, calculate_points_by_range_date(start, end), 'Next Month', range(1, end.day + 1), 'Days', 'Points', [min, 30])
+
+    def last_month():
+        global start, end       
+        end = start.replace(day=1) - timedelta(days=1)
+        start = end - timedelta(days=end.day - 1)
+        set_canvas(start, end, calculate_points_by_range_date(start, end), 'Last Month', range(1, end.day + 1), 'Days', 'Points', [min, 30])
 
     def set_canvas(start, end, points, title, xAxes, xLabel, yLabel, axHline):
         global canvas
@@ -289,7 +290,7 @@ def plot_canvas(window):
                 allMoneys = select_money_by_start_end(category[0], start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
                 points.append(calculate_points_category(category, start, end, allMoneys, calculate_points_money))
             elif category[4] == 1: # once
-                allOnces = select_once_by_start_end(category[0], start.strftime('%Y-%m-%d'), end.strftime('%d-%m-%Y'))
+                allOnces = select_once_by_start_end(category[0], start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
                 points.append(calculate_points_category(category, start, end, allOnces, calculate_points_once))
         return combine_points_on_day(points)
 
@@ -301,6 +302,7 @@ def plot_canvas(window):
         return pointsToReturn
 
     # gets a function to calculate the categories 
+    # i is used as the index for the points, and days is used to check the day in the date. 
     def calculate_points_category(category, start, end, dataset, func):
         if end.day > start.day : # like start = 23/5 end = 30/5
             points = [0] * (end.day - start.day + 1)
@@ -308,12 +310,12 @@ def plot_canvas(window):
             for day in range(start.day, end.day + 1):
                 func(category, points, day, dataset, i)
                 i += 1
-            
+
         else : # like start = 30/5 end = 6/6 
             next_month = start.replace(day=28) + timedelta(days=4)  # this will never fail
             endMonth = next_month - timedelta(days=next_month.day)
             points = [0] * (end.day + endMonth.day - start.day + 1)           
-            day = start.day
+            day = start.day 
             for i in range(len(points)):
                 func(category, points, day, dataset, i)
                 if day == endMonth.day:
@@ -372,11 +374,8 @@ def plot_canvas(window):
 
     # variables 
     min = 20
-    global start, end, week_select, month_select, year_select
+    global start, end
     start = datetime.today()
-    week_select = False
-    month_select = False
-    year_select = False
     
     ### instantiate widgets ###
     global canvas
@@ -386,11 +385,11 @@ def plot_canvas(window):
     btnMain = Button(window, text="main", command=go_main_window, width = 14, height = 1) 
     btnThisWeek = Button(window, text="this week", command=set_this_week, width = 14, height = 1) 
     btnThisMonth = Button(window, text="this Month", command=set_this_month, width = 14, height = 1) 
-    btnThisYear = Button(window, text="this Year", command=go_main_window, width = 14, height = 1) 
+    #btnThisYear = Button(window, text="this Year", command=set_this_year, width = 14, height = 1) 
     btnLastWeek = Button(window, text="<< week", command=last_week, width = 14, height = 1) 
     btnNextWeek = Button(window, text=" week >>", command=next_week, width = 14, height = 1) 
-    btnLastMonth = Button(window, text="<< month", command=go_main_window, width = 14, height = 1) 
-    btnNextMonth = Button(window, text="monthh >>", command=go_main_window, width = 14, height = 1) 
+    btnLastMonth = Button(window, text="<< month", command=last_month, width = 14, height = 1) 
+    btnNextMonth = Button(window, text="month >>", command=next_month, width = 14, height = 1) 
 
     # labels
     lblWarnig = Label(window, fg='red')
@@ -401,7 +400,7 @@ def plot_canvas(window):
     btnMain.pack()
     btnThisWeek.pack()
     btnThisMonth.pack()
-    btnThisYear.pack()
+    #btnThisYear.pack()
     btnLastWeek.pack(side=LEFT)
     btnNextWeek.pack(side=RIGHT)
     btnLastMonth.pack(side=LEFT)
