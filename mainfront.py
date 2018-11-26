@@ -327,8 +327,11 @@ def plot_canvas(window):
     def calculate_points_time(category, points, day, allTimes, i):
         for time in allTimes:
             if time[2].day == day:
-                        hours, minutes = days_hours_minutes(time[4] - time[3])
-                        points[i] += category[5] * hours + (minutes/60) * category[5]
+                if time[4] != None:
+                    hours, minutes = days_hours_minutes(time[4] - time[3])
+                    points[i] += category[5] * hours + (minutes/60) * category[5]
+                else :
+                    points[i] += 0
 
     def calculate_points_money(category, points, day, allMoneys, i):
             for money in allMoneys:
@@ -360,7 +363,7 @@ def plot_canvas(window):
             subplot.axhline(axHline[0] ,c="red",linewidth=1)
             subplot.axhline(axHline[1] ,c="blue",linewidth=1)
 
-        subplot.set_yticks(range(-200, 201, 25))
+        subplot.set_yticks(range(-30, 31, 5))
 
         # canvas
         canvas = FigureCanvasTkAgg(figure, window)
@@ -415,8 +418,7 @@ def plot_canvas(window):
 window = Tk()
 
 # load main window layout
-plot_canvas(window)
-# main_window(window)
+main_window(window)
 
 # window main loop
 window.mainloop()
