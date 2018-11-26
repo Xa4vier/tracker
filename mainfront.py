@@ -90,12 +90,13 @@ def main_window(window):
         lblMoney.grid_remove()
 
     ### window settings ###
-    window.title("Tracker - Main")
-    window.geometry('500x400')
+    window.title("Tracker - Main (dev)")
+    # width x height + x_offset + y_offset:
+    window.geometry('500x400+30+30')
 
     ### instantiate widgets ###
     # buttons
-    btnSSM = Button(window, text="Start/Stop/Amount", command=add_activity, width = 30, height = 10, fg="green") 
+    btnSSM = Button(window, text="Start/Stop/Amount", command=add_activity, fg="green") 
     btnCategory = Button(window, text="nieuwe categorie", command=new_category, width = 14, height = 1) 
     btnPlot = Button(window, text="plot", command=make_plot, width = 14, height = 1) 
 
@@ -117,20 +118,21 @@ def main_window(window):
 
     ### set geo ###
     # buttons
-    btnSSM.grid()
-    btnCategory.grid(column=1, row=2)
-    btnPlot.grid(column=1, row=3)
+    btnssm.place(x = 10, y = 10 ,width = 30, height = 10)
+    # btnSSM.grid()
+    # btnCategory.grid(column=1, row=2)
+    # btnPlot.grid(column=1, row=3)
 
-    # radio buttons
-    for i in range(len(rads)):
-        rads[i].grid(row=i+3)
+    # # radio buttons
+    # for i in range(len(rads)):
+    #     rads[i].grid(row=i+3)
 
-    # entry
-    entryMoney.grid(row=len(rads) + 4)
+    # # entry
+    # entryMoney.grid(row=len(rads) + 4)
 
-    # labels
-    lblMoney.grid(row=len(rads) + 3)
-    lblWarning.grid(row=2)
+    # # labels
+    # lblMoney.grid(row=len(rads) + 3)
+    # lblWarning.grid(row=2)
 
 def new_category_window(window):
     
