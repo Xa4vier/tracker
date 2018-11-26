@@ -41,8 +41,10 @@ def main_window(window):
         time = datetime.today().strftime('%H:%M:%S')
         if len(select_time_by_date_endtime_cid(category[0], date)) == 0:
             insert_time_start(category[0], date, time)
+            lblWarning.configure(text = f"Start {category[1].replace('_', ' ')}")
         else :
             update_time_end(category[0], date, time)
+            lblWarning.configure(text = f"Einde {category[1].replace('_', ' ')}")
 
     def proces_money(category):
         try :
