@@ -11,6 +11,8 @@ def insert_category(name, time, money, once, points):
     connection.commit()
     connection.close()
 
+# Once
+
 def insert_once(categoryId, date):
     params = (categoryId, date)
     connection = get_connection()
@@ -19,13 +21,17 @@ def insert_once(categoryId, date):
     connection.commit()
     connection.close() 
 
-def insert_money(categoryId, money):
-    params = (categoryId, money)
+# money
+
+def insert_money(categoryId, money, date):
+    params = (categoryId, money, date)
     connection = get_connection()
     cursor = connection.cursor()
-    cursor.execute('INSERT INTO money (categoryId, amount) VALUES(%s, %s)', params)
+    cursor.execute('INSERT INTO money (categoryId, amount, dateOf) VALUES(%s, %s, %s)', params)
     connection.commit()
     connection.close()  
+
+# time
 
 def insert_time_start(categoryId, dateOf, start):
     params = (categoryId, dateOf, start)

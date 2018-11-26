@@ -47,9 +47,10 @@ def main_window(window):
             lblWarning.configure(text = f"Einde {category[1].replace('_', ' ')}")
 
     def proces_money(category):
+        date = datetime.today()
         try :
             if int(entryMoney.get()) >= 0 : 
-                insert_money(category[0], int(entryMoney.get()))
+                insert_money(category[0], int(entryMoney.get()), date)
                 name = category[1].replace('_', ' ')
                 lblWarning.configure(text=f'€{entryMoney.get()},- toegevoegd aan {name}!')
             else :
@@ -354,7 +355,7 @@ def plot_canvas(window):
         
         # set subplot
         subplot.set_title(title)
-        subplot.plot(x, y, color='orange')
+        #subplot.plot(x, y, color='orange')
         subplot.bar(x, y,)
         subplot.axhline(0 ,c="black",linewidth=1)
 
@@ -365,7 +366,7 @@ def plot_canvas(window):
             subplot.axhline(axHline[0] ,c="red",linewidth=1)
             subplot.axhline(axHline[1] ,c="blue",linewidth=1)
 
-        subplot.set_yticks(range(-30, 31, 5))
+        subplot.set_yticks(range(-100, 101, 25))
 
         # canvas
         canvas = FigureCanvasTkAgg(figure, window)
