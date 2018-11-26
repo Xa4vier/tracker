@@ -223,15 +223,15 @@ def plot_canvas(window):
         # canvas
         canvas.get_tk_widget().destroy()
         # buttons
-        btnMain.pack_forget()
-        btnThisWeek.pack_forget() 
-        btnThisMonth.pack_forget() 
+        btnMain.place_forget()
+        btnThisWeek.place_forget() 
+        btnThisMonth.place_forget() 
         #btnThisYear.pack_forget() 
-        btnLastWeek.pack_forget()
-        btnNextWeek.pack_forget()
-        btnLastMonth.pack_forget()
-        btnNextMonth.pack_forget() 
-        lblWarnig.pack_forget()
+        btnLastWeek.place_forget()
+        btnNextWeek.place_forget()
+        btnLastMonth.place_forget()
+        btnNextMonth.place_forget() 
+        lblWarnig.place_forget()
 
     def hide_warnings():
         lblWarnig.configure(text = '')
@@ -375,12 +375,12 @@ def plot_canvas(window):
         # canvas
         canvas = FigureCanvasTkAgg(figure, window)
         canvas.show()
-        canvas.get_tk_widget().pack(side = BOTTOM, fill = X, expand = TRUE)
+        canvas.get_tk_widget().place(x = 125, y = 200, width = 1150, height = 550)
         return canvas
        
     ### title ###
     window.title('Tracker - Plot')
-    window.geometry('1400x600')
+    window.geometry('1400x740')
 
     # variables 
     min = 20
@@ -392,14 +392,14 @@ def plot_canvas(window):
     canvas = show_canvas(range(7), range(7), 'dummie')
 
     # buttons
-    btnMain = Button(window, text="main", command=go_main_window, width = 14, height = 1) 
-    btnThisWeek = Button(window, text="this week", command=set_this_week, width = 14, height = 1) 
-    btnThisMonth = Button(window, text="this Month", command=set_this_month, width = 14, height = 1) 
+    btnMain = Button(window, text="main", fg='blue', command=go_main_window, width = 14, height = 1) 
+    btnThisWeek = Button(window, text="this week", fg='orange', command=set_this_week, width = 14, height = 1) 
+    btnThisMonth = Button(window, text="this Month", fg='orange', command=set_this_month, width = 14, height = 1) 
     #btnThisYear = Button(window, text="this Year", command=set_this_year, width = 14, height = 1) 
-    btnLastWeek = Button(window, text="<< week", command=last_week, width = 14, height = 1) 
-    btnNextWeek = Button(window, text=" week >>", command=next_week, width = 14, height = 1) 
-    btnLastMonth = Button(window, text="<< month", command=last_month, width = 14, height = 1) 
-    btnNextMonth = Button(window, text="month >>", command=next_month, width = 14, height = 1) 
+    btnLastWeek = Button(window, text="<< week", fg='red', command=last_week, width = 14, height = 1) 
+    btnNextWeek = Button(window, text=" week >>", fg='red', command=next_week, width = 14, height = 1) 
+    btnLastMonth = Button(window, text="<< month", fg='red', command=last_month, width = 14, height = 1) 
+    btnNextMonth = Button(window, text="month >>", fg='red', command=next_month, width = 14, height = 1) 
 
     # labels
     lblWarnig = Label(window, fg='red')
@@ -407,17 +407,20 @@ def plot_canvas(window):
     ### set pack ###
     
     # buttons
-    btnMain.pack()
-    btnThisWeek.pack()
-    btnThisMonth.pack()
-    #btnThisYear.pack()
-    btnLastWeek.pack(side=LEFT)
-    btnNextWeek.pack(side=RIGHT)
-    btnLastMonth.pack(side=LEFT)
-    btnNextMonth.pack(side=RIGHT)
+    btn_size = 150
+    btn_size_move = 100    
+    btnMain.place(x = 600, y = 12, width = btn_size)
+    btnThisWeek.place(x = 600, y = 150, width = btn_size)
+    btnThisMonth.place(x = 600, y = 170, width = btn_size)
+    #btnThisYear.place()
+    
+    btnLastWeek.place(x = 10, y = 375, width = btn_size_move)
+    btnNextWeek.place(x = 1290, y = 375, width = btn_size_move)
+    btnLastMonth.place(x = 10, y = 395, width = btn_size_move)
+    btnNextMonth.place(x = 1290, y = 395, width = btn_size_move)
 
     # labels
-    lblWarnig.pack(side=BOTTOM)
+    # lblWarnig.pack(side=BOTTOM)
 
     set_this_week()
 
@@ -426,7 +429,7 @@ window = Tk()
 
 # load main window layout
 # main_window(window)
-new_category_window(window)
+plot_canvas(window)
 
 # window main loop
 window.mainloop()
