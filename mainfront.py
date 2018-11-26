@@ -68,37 +68,40 @@ def main_window(window):
 
     # new windows
     def new_category():
-        hide_all_main()
+        forget_all_main()
         new_category_window(window)
 
     def make_plot():
-        hide_all_main()
+        forget_all_main()
         plot_canvas(window)
 
-    def hide_all_main():
+    def forget_all_main():
         # buttons
-        btnSSM.grid_remove()
-        btnCategory.grid_remove()
-        btnPlot.grid_remove()
+        btnSSM.place_forget()
+        btnCategory.place_forget()
+        btnPlot.place_forget()
         
         # radio boxes
         for i in rads:
-            i.grid_remove()
+            i.place_forget()
 
         # entries
-        entryMoney.grid_remove()
+        entryMoney.place_forget()
 
         # labels
-        lblWarning.grid_remove()
-        lblMoney.grid_remove()
+        lblWarning.place_forget()
+        lblMoney.place_forget()
 
     ### window settings ###
-    window.title("Tracker - Main")
-    window.geometry('500x400')
+    window.title("Tracker - Main (dev)")
+    # width x height + x_offset + y_offset:
+    window.geometry('500x400+30+30')
+
+    nav_size = 150
 
     ### instantiate widgets ###
     # buttons
-    btnSSM = Button(window, text="Start/Stop/Amount", command=add_activity, width = 30, height = 10, fg="green") 
+    btnSSM = Button(window, text="Start/Stop/Amount", command=add_activity, fg="green") 
     btnCategory = Button(window, text="nieuwe categorie", command=new_category, width = 14, height = 1) 
     btnPlot = Button(window, text="plot", command=make_plot, width = 14, height = 1) 
 
@@ -118,22 +121,24 @@ def main_window(window):
     lblMoney = Label(window, text='Geld:', fg='blue')
     lblWarning = Label(window, fg='red')
 
-    ### set Grid ###
+    ### set geo ###
     # buttons
-    btnSSM.grid()
-    btnCategory.grid(column=1, row=2)
-    btnPlot.grid(column=1, row=3)
+    btnSSM.place(x = 10, y = 40 ,width = 250, height = 150)
+    
+    # nav buttons
+    btnCategory.place(x = 10, y = 10, width = nav_size)
+    btnPlot.place(x = (nav_size + 20) * 1, y = 10, width = nav_size)
 
     # radio buttons
     for i in range(len(rads)):
-        rads[i].grid(row=i+3)
+         rads[i].place(x = 40, y = 240 + 25 * i)
 
     # entry
-    entryMoney.grid(row=len(rads) + 4)
+    entryMoney.place(x = 50, y = 260 + len(rads) * 25)
 
     # labels
-    lblMoney.grid(row=len(rads) + 3)
-    lblWarning.grid(row=2)
+    lblMoney.place(x = 10, y = 260 + len(rads) * 25)
+    lblWarning.place(x = 40, y = 210)
 
 def new_category_window(window):
     
@@ -149,28 +154,28 @@ def new_category_window(window):
         entryPoints.configure(text='')
         
     def load_main_window():
-        hide_all_new()
+        forget_all_new()
         main_window(window)
 
-    def hide_all_new():
+    def forget_all_new():
         # buttons
-        btnMain.grid_remove()
-        btnAdd.grid_remove()
+        btnMain.place_forget()
+        btnAdd.place_forget()
         # radio buttons
-        rbMoney.grid_remove()
-        rbTime.grid_remove()
-        rbOnce.grid_remove()
+        rbMoney.place_forget()
+        rbTime.place_forget()
+        rbOnce.place_forget()
         # entries
-        entryName.grid_remove()
-        entryPoints.grid_remove()
+        entryName.place_forget()
+        entryPoints.place_forget()
         # labels
-        lblName.grid_remove()
-        lblPoints.grid_remove()
+        lblName.place_forget()
+        lblPoints.place_forget()
 
 
     ### window settings ###
     window.title("Tracker - Nieuwe categorie")
-    window.geometry('300x200')
+    window.geometry('300x250')
 
     ### instantiate widgets ###
     # buttons
@@ -188,26 +193,28 @@ def new_category_window(window):
     rbOnce = Radiobutton(window,text='Eenmalig', value=3, variable=selected) 
 
     # labels
-    lblName = Label(window, text='Naam')
-    lblPoints = Label(window, text='Punten')
+    lblName = Label(window, text='Naam', fg='blue')
+    lblPoints = Label(window, text='Punten', fg='blue')
 
     ### set grid ###
+    xC = 60
+    btn_size = 190
     # buttons
-    btnAdd.grid(row=6)
-    btnMain.grid(row=7)
+    btnAdd.place(x = xC + 1, y = 155, width = btn_size)
+    btnMain.place(x = xC + 1, y = 195, width = btn_size)
 
     # text fields
-    entryName.grid(row=1)
-    entryPoints.grid(row=5)
+    entryName.place(x = xC, y = 5)
+    entryPoints.place(x = xC, y = 120)
 
     # radio buttons
-    rbTime.grid(row=2)
-    rbMoney.grid(row=3)
-    rbOnce.grid(row=4)
+    rbTime.place(x = xC, y = 45)
+    rbMoney.place(x = xC, y = 70)
+    rbOnce.place(x = xC, y = 95)
 
     # labels
-    lblName.grid(row=1, column=2)
-    lblPoints.grid(row=5, column=2)
+    lblName.place(x = 5, y = 5)
+    lblPoints.place(x = 5, y = 120)
 
 def plot_canvas(window):
     ### function part of the new category window function
@@ -219,15 +226,15 @@ def plot_canvas(window):
         # canvas
         canvas.get_tk_widget().destroy()
         # buttons
-        btnMain.pack_forget()
-        btnThisWeek.pack_forget() 
-        btnThisMonth.pack_forget() 
+        btnMain.place_forget()
+        btnThisWeek.place_forget() 
+        btnThisMonth.place_forget() 
         #btnThisYear.pack_forget() 
-        btnLastWeek.pack_forget()
-        btnNextWeek.pack_forget()
-        btnLastMonth.pack_forget()
-        btnNextMonth.pack_forget() 
-        lblWarnig.pack_forget()
+        btnLastWeek.place_forget()
+        btnNextWeek.place_forget()
+        btnLastMonth.place_forget()
+        btnNextMonth.place_forget() 
+        lblWarnig.place_forget()
 
     def hide_warnings():
         lblWarnig.configure(text = '')
@@ -371,12 +378,12 @@ def plot_canvas(window):
         # canvas
         canvas = FigureCanvasTkAgg(figure, window)
         canvas.show()
-        canvas.get_tk_widget().pack(side = BOTTOM, fill = X, expand = TRUE)
+        canvas.get_tk_widget().place(x = 125, y = 200, width = 1150, height = 550)
         return canvas
        
     ### title ###
     window.title('Tracker - Plot')
-    window.geometry('1400x600')
+    window.geometry('1400x740')
 
     # variables 
     min = 20
@@ -388,14 +395,14 @@ def plot_canvas(window):
     canvas = show_canvas(range(7), range(7), 'dummie')
 
     # buttons
-    btnMain = Button(window, text="main", command=go_main_window, width = 14, height = 1) 
-    btnThisWeek = Button(window, text="this week", command=set_this_week, width = 14, height = 1) 
-    btnThisMonth = Button(window, text="this Month", command=set_this_month, width = 14, height = 1) 
+    btnMain = Button(window, text="main", fg='blue', command=go_main_window, width = 14, height = 1) 
+    btnThisWeek = Button(window, text="this week", fg='orange', command=set_this_week, width = 14, height = 1) 
+    btnThisMonth = Button(window, text="this Month", fg='orange', command=set_this_month, width = 14, height = 1) 
     #btnThisYear = Button(window, text="this Year", command=set_this_year, width = 14, height = 1) 
-    btnLastWeek = Button(window, text="<< week", command=last_week, width = 14, height = 1) 
-    btnNextWeek = Button(window, text=" week >>", command=next_week, width = 14, height = 1) 
-    btnLastMonth = Button(window, text="<< month", command=last_month, width = 14, height = 1) 
-    btnNextMonth = Button(window, text="month >>", command=next_month, width = 14, height = 1) 
+    btnLastWeek = Button(window, text="<< week", fg='red', command=last_week, width = 14, height = 1) 
+    btnNextWeek = Button(window, text=" week >>", fg='red', command=next_week, width = 14, height = 1) 
+    btnLastMonth = Button(window, text="<< month", fg='red', command=last_month, width = 14, height = 1) 
+    btnNextMonth = Button(window, text="month >>", fg='red', command=next_month, width = 14, height = 1) 
 
     # labels
     lblWarnig = Label(window, fg='red')
@@ -403,17 +410,20 @@ def plot_canvas(window):
     ### set pack ###
     
     # buttons
-    btnMain.pack()
-    btnThisWeek.pack()
-    btnThisMonth.pack()
-    #btnThisYear.pack()
-    btnLastWeek.pack(side=LEFT)
-    btnNextWeek.pack(side=RIGHT)
-    btnLastMonth.pack(side=LEFT)
-    btnNextMonth.pack(side=RIGHT)
+    btn_size = 150
+    btn_size_move = 100    
+    btnMain.place(x = 600, y = 12, width = btn_size)
+    btnThisWeek.place(x = 600, y = 150, width = btn_size)
+    btnThisMonth.place(x = 600, y = 170, width = btn_size)
+    #btnThisYear.place()
+    
+    btnLastWeek.place(x = 10, y = 375, width = btn_size_move)
+    btnNextWeek.place(x = 1290, y = 375, width = btn_size_move)
+    btnLastMonth.place(x = 10, y = 395, width = btn_size_move)
+    btnNextMonth.place(x = 1290, y = 395, width = btn_size_move)
 
     # labels
-    lblWarnig.pack(side=BOTTOM)
+    # lblWarnig.pack(side=BOTTOM)
 
     set_this_week()
 
@@ -421,7 +431,8 @@ def plot_canvas(window):
 window = Tk()
 
 # load main window layout
-main_window(window)
+# main_window(window)
+plot_canvas(window)
 
 # window main loop
 window.mainloop()
