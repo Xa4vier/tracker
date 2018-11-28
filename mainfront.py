@@ -17,6 +17,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from domein.procesActivities import add_activity_by_id
 from domein.pointCalculcation import calculate_points_by_range_date
 from domein.categoryActions import get_all_categories, add_new_category
+from domein.userManagement import create_account
 
 from times import start_end_this_week, start_end_last_week, start_end_next_week, start_end_this_month, start_end_next_month, start_end_last_month
 from account import save_account
@@ -97,7 +98,7 @@ def main_window(window):
 
     # radio boxes
     selected = IntVar()
-    categories = get_all_category()
+    categories = get_all_categories()
     names = [name[1].replace('_', ' ') for name in categories]
     indexes = [i[0] for i in categories]
     values = [i for i in range(1, len(names) + 1)]
@@ -337,8 +338,48 @@ def plot_canvas(window):
 
 def make_account_window(window):
 
-    def create_account():
-        pass
+    def go_main_window():
+        forget_all_make_account()
+        main_window(window)
+
+    def forget_all_make_account():
+        buttonAdd.place_forget()
+        buttonLogin.place_forget()
+        
+        entryName.place_forget()
+        entryPassword.place_forget()
+        entryPasswordCheck.place_forget()
+
+        lblName.place_forget()
+        lblPassword.place_forget()
+        lblPasswordChek.place_forget()
+
+        lblWarning.place_forget()
+
+    def create_account_event():
+        if check_form() :
+            if create_account(entryName.get(), entryPassword.get()) == 'succes':
+                with open('data/account.csv', 'w') as myfile:
+                    wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
+                    wr.writerow([entryName.get(), entryPassword.get()])
+                    go_main_window()
+            else :
+                lblWarning.configure(text = 'Er is iets mis gegaan')
+            
+    def check_form():
+        message = ''
+        check = True
+        if entryName.get() == '':
+            message = 'Vul een naam in\n'
+        if entryPassword.get() == '' or entryPasswordCheck.get() == '':
+            message += 'Vul een wachtwoord in\n'
+        if entryPassword.get() != entryPasswordCheck.get():
+            message += 'Wachtwoorden zijn niet het zelfde'
+        if message != '':
+            check = False
+            lblWarning.configure(text = message)
+        return check   
+        
 
     def login():
         pass
@@ -346,13 +387,13 @@ def make_account_window(window):
     ### window settings ###
     window.title("Tracker - Account aanmaken (dev)")
     # width x height + x_offset + y_offset:
-    window.geometry('400x170+30+30')
+    window.geometry('400x195+30+30')
 
     ### widgets ###
 
     # buttons 
 
-    buttonAdd = Button(window, text="Maak aan", command=create_account, fg="green") 
+    buttonAdd = Button(window, text="Maak aan", command=create_account_event, fg="green") 
     buttonLogin = Button(window, text="Log in", command=login, fg="green") 
 
     # entry
@@ -365,7 +406,7 @@ def make_account_window(window):
     lblPassword = Label(window, text='Password:')
     lblPasswordChek = Label(window, text='Password Check:')
 
-    lblWarning = Label(window, fg='red', text='warning')
+    lblWarning = Label(window, fg='red')
 
     ### set geo ###
 
