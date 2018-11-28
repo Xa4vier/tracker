@@ -17,8 +17,12 @@ from update import *
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 
-def days_hours_minutes(td):
-    return td.seconds//3600, (td.seconds//60)%60 # hours, minutes
+from procesActivities import add_activity_by_id
+from add_category import add_new_category
+from times import start_end_this_week, start_end_last_week, start_end_next_week, start_end_this_month, start_end_next_month, start_end_last_month
+from pointCalculcation import calculate_points_by_range_date
+
+
 
 def main_window(window): 
     
@@ -27,44 +31,32 @@ def main_window(window):
         if selected.get() == 0:
             lblWarning.configure(text='Geen categorie geselecteerd')
         else :
-            lblWarning.configure(text='')
-            category = select_category_by_id(selected.get())
-            if category[2] == 1: # time
-                proces_time(category)
-            elif category[3] == 1: # money
-                proces_money(category)
-            elif category[4] == 1: # once
-                proces_once(category)
-
-    def proces_time(category):
-        date =  datetime.today().strftime('%Y-%m-%d')
-        time = datetime.today().strftime('%H:%M:%S')
-        if len(select_time_by_date_endtime_cid(category[0], date)) == 0:
-            insert_time_start(category[0], date, time)
-            lblWarning.configure(text = f"Start {category[1].replace('_', ' ')}")
-        else :
-            update_time_end(category[0], date, time)
-            lblWarning.configure(text = f"Einde {category[1].replace('_', ' ')}")
-
-    def proces_money(category):
-        date = datetime.today()
-        try :
-            if int(entryMoney.get()) >= 0 : 
-                insert_money(category[0], int(entryMoney.get()), date)
-                name = category[1].replace('_', ' ')
-                lblWarning.configure(text=f'€{entryMoney.get()},- toegevoegd aan {name}!')
+            print(categories[selected.get() - 1][3])
+            if entryMoney.get() == '' and categories[selected.get() - 1][3] == 0:
+                message = add_activity_by_id(selected.get())
+                set_warning_add(message)
             else :
-                lblWarning.configure(text='kan niet onder de 1')
-        except ValueError:
-            lblWarning.configure(text='alleen getallen')
-
-    def proces_once(category):
-        date =  datetime.today().strftime('%Y-%m-%d')
-        if len(select_once_by_cid_and_date(category[0], date)) == 0:
-            insert_once(category[0], date)
-            lblWarning.configure(text='Gelukt!')
-        else :
-            lblWarning.configure(text='Is al opgeslagen')   
+                try :
+                    if int(entryMoney.get()) > 0:
+                        message = add_activity_by_id(selected.get(), entryMoney.get())
+                        entryMoney.configure(text = '')
+                        set_warning_add(message)
+                    elif int(entryMoney.get()) <= 0:
+                        lblWarning.configure(text = f"Geen getal onder de 1!")
+                except ValueError :
+                    lblWarning.configure(text = f"Er moet een getal worden ingevoerd!")
+            
+    def set_warning_add(message):
+        if message == 'start': 
+            lblWarning.configure(text = f"Start")
+        elif message == 'end':
+            lblWarning.configure(text = f"Einde")
+        elif message == 'succes_money':
+            lblWarning.configure(text=f'€{entryMoney.get()},- toegevoegd bij {names[selected.get() - 1]}!!')
+        elif message == 'succes_once':
+            lblWarning.configure(text=f'once opgeslagen!!')
+        elif message == 'already_saved':
+            lblWarning.configure(text='Is al opgeslagen') 
 
     # new windows
     def new_category():
@@ -107,12 +99,13 @@ def main_window(window):
 
     # radio boxes
     selected = IntVar()
-    texts = select_all_category_names()
-    texts = [text[0].replace('_', ' ') for text in texts]
-    values = range(1, len(texts) + 1) 
+    categories = select_all_from_category()
+    names = [name[1].replace('_', ' ') for name in categories]
+    indexes = [i[0] for i in categories]
+    values = [i for i in range(1, len(names) + 1)]
     rads = []
-    for i in range(len(texts)):
-        rads.append(Radiobutton(window, text=texts[i], value=values[i], variable=selected))
+    for i in range(len(names)):
+        rads.append(Radiobutton(window, text=names[i], value=values[i], variable=selected))
 
     # entry
     entryMoney = Entry(window)
@@ -134,7 +127,7 @@ def main_window(window):
          rads[i].place(x = 40, y = 240 + 25 * i)
 
     # entry
-    entryMoney.place(x = 50, y = 260 + len(rads) * 25)
+    entryMoney.place(x = 60, y = 260 + len(rads) * 25)
 
     # labels
     lblMoney.place(x = 10, y = 260 + len(rads) * 25)
@@ -144,15 +137,10 @@ def new_category_window(window):
     
     ### function part of the new category window function
     def add_category():
-        if selected.get() == 1:
-            insert_category(entryName.get(), True, False, False, entryPoints.get())
-        elif selected.get() == 2 :
-            insert_category(entryName.get(), False, True, False, entryPoints.get())
-        else :
-            insert_category(entryName.get(), False, False, True, entryPoints.get())
+        message = add_new_category(selected.get(), entryName.get(), entryPoints.get())
         entryName.configure(text='')
         entryPoints.configure(text='')
-        
+       
     def load_main_window():
         forget_all_new()
         main_window(window)
@@ -241,45 +229,32 @@ def plot_canvas(window):
 
     def set_this_week():
         global start, end
-        dt = datetime.today()
-        start = dt - timedelta(days=dt.weekday())
-        end = start + timedelta(days=6)
+        start, end = start_end_this_week()
         set_canvas(start, end, calculate_points_by_range_date(start, end), 'This Week', range(1, 8), 'Days', 'Points', [min, 30])
     
     def last_week():
         global start, end       
-        start -= timedelta(days=2)
-        start -= timedelta(days=start.weekday())
-        end = start + timedelta(days=6)
+        start, end = start_end_last_week(start)
         set_canvas(start, end, calculate_points_by_range_date(start, end), 'last Week', range(1, 8), 'Days', 'Points', [min, 30])
 
     def next_week():
         global start, end       
-        end += timedelta(days=2)
-        start = end - timedelta(days=end.weekday())
-        end = start + timedelta(days=6)
+        start, end = start_end_next_week(end)
         set_canvas(start, end, calculate_points_by_range_date(start, end), 'Next Week', range(1, 8), 'Days', 'Points', [min, 30])
 
     def set_this_month():
         global start, end
-        dt = datetime.today()        
-        start = dt - timedelta(days=dt.day - 1)
-        next_month = start.replace(day=28) + timedelta(days=4)  # this will never fail
-        end = next_month - timedelta(days=next_month.day)
+        start, end = start_end_this_month()
         set_canvas(start, end, calculate_points_by_range_date(start, end), 'This Month', range(1, end.day + 1), 'Days', 'Points', [min, 30])
 
     def next_month():
         global start, end       
-        end += timedelta(days=2)
-        start = end - timedelta(days=end.day - 1)
-        next_month = end.replace(day=28) + timedelta(days=4)
-        end = next_month - timedelta(days=next_month.day)
+        start, end = start_end_next_month(end)
         set_canvas(start, end, calculate_points_by_range_date(start, end), 'Next Month', range(1, end.day + 1), 'Days', 'Points', [min, 30])
 
     def last_month():
         global start, end       
-        end = start.replace(day=1) - timedelta(days=1)
-        start = end - timedelta(days=end.day - 1)
+        start, end = start_end_last_month(start)
         set_canvas(start, end, calculate_points_by_range_date(start, end), 'Last Month', range(1, end.day + 1), 'Days', 'Points', [min, 30])
 
     def set_canvas(start, end, points, title, xAxes, xLabel, yLabel, axHline):
@@ -288,71 +263,6 @@ def plot_canvas(window):
         start = start.strftime('%d-%m-%Y')
         end = end.strftime('%d-%m-%Y')
         canvas = show_canvas(range(1, len(points) + 1), points, f'{title} - {start} - {end}', xAxes, xLabel, yLabel, axHline)
-
-    def calculate_points_by_range_date(start, end):
-        categories = select_all_from_category()
-        points = []
-        for category in categories:
-            if category[2] == 1: # time
-                allTime = select_time_by_start_end(category[0], start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
-                points.append(calculate_points_category(category, start, end, allTime, calculate_points_time))
-            elif category[3] == 1: # money
-                allMoneys = select_money_by_start_end(category[0], start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
-                points.append(calculate_points_category(category, start, end, allMoneys, calculate_points_money))
-            elif category[4] == 1: # once
-                allOnces = select_once_by_start_end(category[0], start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
-                points.append(calculate_points_category(category, start, end, allOnces, calculate_points_once))
-        return combine_points_on_day(points)
-
-    def combine_points_on_day(points):
-        pointsToReturn = [0] * len(points[0])
-        for i in range(len(points[0])):
-            for row in points:
-                pointsToReturn[i] += row[i]
-        return pointsToReturn
-
-    # gets a function to calculate the categories 
-    # i is used as the index for the points, and days is used to check the day in the date. 
-    def calculate_points_category(category, start, end, dataset, func):
-        if end.day > start.day : # like start = 23/5 end = 30/5
-            points = [0] * (end.day - start.day + 1)
-            i = 0
-            for day in range(start.day, end.day + 1):
-                func(category, points, day, dataset, i)
-                i += 1
-
-        else : # like start = 30/5 end = 6/6 
-            next_month = start.replace(day=28) + timedelta(days=4)  # this will never fail
-            endMonth = next_month - timedelta(days=next_month.day)
-            points = [0] * (end.day + endMonth.day - start.day + 1)           
-            day = start.day 
-            for i in range(len(points)):
-                func(category, points, day, dataset, i)
-                if day == endMonth.day:
-                    day = 0
-                day += 1
-
-        return [int(p) for p in points]
-
-    def calculate_points_time(category, points, day, allTimes, i):
-        for time in allTimes:
-            if time[2].day == day:
-                if time[4] != None:
-                    hours, minutes = days_hours_minutes(time[4] - time[3])
-                    points[i] += category[5] * hours + (minutes/60) * category[5]
-                else :
-                    points[i] += 0
-
-    def calculate_points_money(category, points, day, allMoneys, i):
-            for money in allMoneys:
-                if money[3].day == day:
-                    points[i] += category[5] * money[2]
-
-    # calculate all the point for a category where there is a once
-    def calculate_points_once(category, points, day, allOnces, i):
-            for once in allOnces:
-                if once[2].day == day:
-                    points[i] += category[5]
 
     # canvas object is returned so that other child functions can access it
     def show_canvas(x, y, title, xAxes = False, xLabel = False, yLabel = False, axHline = False):
@@ -431,8 +341,8 @@ def plot_canvas(window):
 window = Tk()
 
 # load main window layout
-# main_window(window)
-plot_canvas(window)
+main_window(window)
+#plot_canvas(window)
 
 # window main loop
 window.mainloop()
