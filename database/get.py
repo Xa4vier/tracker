@@ -1,4 +1,4 @@
-from connection import create_connection
+from database.connection import create_connection
 
 def get_connection():
     return create_connection()

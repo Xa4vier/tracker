@@ -1,4 +1,8 @@
-from insert import insert_category
+from database.insert import insert_category
+from database.get import select_all_from_category
+
+def get_all_categories():
+    return select_all_from_category()
 
 def add_new_category(typeNumber, name, points):
     '''typeNumber 

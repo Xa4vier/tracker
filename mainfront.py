@@ -9,19 +9,17 @@
 # python tkinter
 from tkinter import *
 from datetime import *
-
-from get import *
-from insert import *
-from update import *
+import csv
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 
-from procesActivities import add_activity_by_id
-from add_category import add_new_category
-from times import start_end_this_week, start_end_last_week, start_end_next_week, start_end_this_month, start_end_next_month, start_end_last_month
-from pointCalculcation import calculate_points_by_range_date
+from domein.procesActivities import add_activity_by_id
+from domein.pointCalculcation import calculate_points_by_range_date
+from domein.categoryActions import get_all_categories, add_new_category
 
+from times import start_end_this_week, start_end_last_week, start_end_next_week, start_end_this_month, start_end_next_month, start_end_last_month
+from account import save_account
 
 
 def main_window(window): 
@@ -99,7 +97,7 @@ def main_window(window):
 
     # radio boxes
     selected = IntVar()
-    categories = select_all_from_category()
+    categories = get_all_category()
     names = [name[1].replace('_', ' ') for name in categories]
     indexes = [i[0] for i in categories]
     values = [i for i in range(1, len(names) + 1)]
@@ -337,11 +335,75 @@ def plot_canvas(window):
 
     set_this_week()
 
+def make_account_window(window):
+
+    def create_account():
+        pass
+
+    def login():
+        pass
+
+    ### window settings ###
+    window.title("Tracker - Account aanmaken (dev)")
+    # width x height + x_offset + y_offset:
+    window.geometry('400x170+30+30')
+
+    ### widgets ###
+
+    # buttons 
+
+    buttonAdd = Button(window, text="Maak aan", command=create_account, fg="green") 
+    buttonLogin = Button(window, text="Log in", command=login, fg="green") 
+
+    # entry
+    entryName = Entry(window)
+    entryPassword = Entry(window, show="*")
+    entryPasswordCheck = Entry(window, show="*")
+    
+    # labels
+    lblName = Label(window, text='Name:')
+    lblPassword = Label(window, text='Password:')
+    lblPasswordChek = Label(window, text='Password Check:')
+
+    lblWarning = Label(window, fg='red', text='warning')
+
+    ### set geo ###
+
+    buttonAdd.place(x = 140, y = 110, width = 100)
+    buttonLogin.place(x = 240, y = 110, width = 100)
+
+    # entry
+    x = 140
+    w = 200
+    entryName.place(x = x, y = 20, width = w)
+    entryPassword.place(x = x, y = 50, width = w)
+    entryPasswordCheck.place(x = x, y = 80, width = w)
+    
+    # labels
+    lblName.place(x = 20, y = 24)
+    lblPassword.place(x = 20, y = 54)
+    lblPasswordChek.place(x = 20, y = 84)
+
+    lblWarning.place(x = 140, y = 140)
+
+
 # set window
 window = Tk()
 
+
+try :
+    with open('data/account.csv', 'r') as f:
+        reader = csv.reader(f)
+        your_list = list(reader)
+    account = [i for i in your_list[0]]
+    main_window(window)
+
+except FileNotFoundError:
+    make_account_window(window)
+
+
 # load main window layout
-main_window(window)
+
 #plot_canvas(window)
 
 # window main loop
