@@ -1,10 +1,11 @@
 from datetime import datetime, timedelta
 
-from database.get import select_all_from_category, select_time_by_start_end, select_money_by_start_end, select_once_by_start_end
+from database.get import select_all_from_category_by_userId, select_time_by_start_end, select_money_by_start_end, select_once_by_start_end
+
 from times import days_hours_minutes
 
-def calculate_points_by_range_date(start, end):
-    categories = select_all_from_category()
+def calculate_points_by_range_date(start, end, userId):
+    categories = select_all_from_category_by_userId(userId)
     points = []
     for category in categories:
         if category[2] == 1: # time

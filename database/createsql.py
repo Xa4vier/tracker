@@ -29,7 +29,7 @@ cursor.execute('''
 ### categories ###
 
 cursor.execute('''
-    CREATE TABLE Category(id INT AUTO_INCREMENT PRIMARY KEY, name TEXT, userId INT, groupId INT,
+    CREATE TABLE Category(id INT AUTO_INCREMENT PRIMARY KEY, userId INT, name TEXT, groupId INT,
                        time BOOLEAN, money BOOLEAN, once BOOLEAN, pot BOOLEAN, points INT)
                        ''')
 
@@ -59,20 +59,32 @@ cursor.execute('''
                        userId INT, amount INT, dateOf Date)
                        ''')
 
-# categorie
-params = ('werken', True, False, False, False, 1)
+# user
+
+params = ('Xavier', 'gAAAAABcAEWIqijwIP1xIemm1F3474aOx9lS-UWRI11IAh8Kvn0NfS2Lsu_h55g8Jx2RbLfhnUwUg5_-XrQkfj9PJrSAR47x5Q==')
 cursor = connection.cursor()
-cursor.execute('INSERT INTO category (name, time, money, once, pot, points) VALUES(%s, %s, %s, %s, %s, %s)', params)
+cursor.execute('INSERT INTO User (name, password) VALUES(%s, %s)', params)
 
-params = ('roken', False, True, False, False, -3)
-cursor.execute('INSERT INTO category (name, time, money, once, pot, points) VALUES(%s, %s, %s, %s, %s, %s)', params)
+# categorie
+params = (1, 'werken', True, False, False, False, 1)
+cursor = connection.cursor()
+cursor.execute('INSERT INTO Category (userId, name, time, money, once, pot, points) VALUES(%s, %s, %s, %s, %s, %s, %s)', params)
 
-params = ('ochtend_sporten', False, False, True, False, 2)
-cursor.execute('INSERT INTO category (name, time, money, once, pot, points) VALUES(%s, %s, %s, %s, %s, %s)', params)
+params = (1, 'roken', False, True, False, False, -3)
+cursor.execute('INSERT INTO Category (userId, name, time, money, once, pot, points) VALUES(%s, %s, %s, %s, %s, %s, %s)', params)
 
-params = ('fitness', False, False, True, False, 3)
-cursor.execute('INSERT INTO category (name, time, money, once, pot, points) VALUES(%s, %s, %s, %s, %s, %s)', params)
+params = (1, 'ochtend_sporten', False, False, True, False, 2)
+cursor.execute('INSERT INTO Category (userId, name, time, money, once, pot, points) VALUES(%s, %s, %s, %s, %s, %s, %s)', params)
 
+params = (1, 'fitness', False, False, True, False, 3)
+cursor.execute('INSERT INTO Category (userId, name, time, money, once, pot, points) VALUES(%s, %s, %s, %s, %s, %s, %s)', params)
+
+params = (1, 'Huishoudelijke Pot', False, False, False, True, 1)
+cursor.execute('INSERT INTO Category (userId, name, time, money, once, pot, points) VALUES(%s, %s, %s, %s, %s, %s, %s)', params)
+
+# pot
+params = (5, 0, '2018/11/19', '2018/11/19', '2018/12/16')
+cursor.execute('INSERT INTO Pot (categoryId, amount, dateOf, startDate, endDate) VALUES(%s, %s, %s, %s, %s)', params)
 
 
 # # once

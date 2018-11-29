@@ -1,23 +1,28 @@
-from database.insert import insert_category
-from database.get import select_all_from_category
+from database.insert import insert_category, insert_pot
+from database.get import select_all_from_category_by_userId
 
-def get_all_categories():
-    return select_all_from_category()
+def get_all_categories_user(userId):
+    return select_all_from_category_by_userId(userId)
 
-def add_new_category(typeNumber, name, points):
+def add_new_category(typeNumber, name, points, userId, *arg):
     '''typeNumber 
     1 = time
     2 = money
-    3 = once '''
+    3 = once 
+    4 = pot'''
     try : 
         if typeNumber == 1:
-            insert_category(name, True, False, False, points)
+            insert_category(name, True, False, False, False, points, userId)
             message = 'succes'
         elif typeNumber == 2 :
-            insert_category(name, False, True, False, points)
+            insert_category(name, False, True, False, False, points, userId)
             message = 'succes'
         elif typeNumber == 3:
-            insert_category(name, False, False, True, points)
+            insert_category(name, False, False, True, False, points, userId)
+            message = 'succes'
+        elif typeNumber == 4:
+            categoryId = insert_category(name, False, False, False, True, points, userId)
+            insert_pot(categoryId, *arg)
             message = 'succes'
         else :
             message = 'Not a category'

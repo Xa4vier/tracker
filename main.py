@@ -6,22 +6,25 @@
 # @author: xaviervanegdom
 # """
 
-# python tkinter
+# python packages
 from tkinter import Tk, Button, Label, Entry, Radiobutton, IntVar
 from datetime import datetime
-
-from get import *
-from tkinter import *
-from datetime import *
 import csv
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 
+# interface packages
+
+
+# domein packages
 from domein.procesActivities import add_activity_by_id
 from domein.pointCalculcation import calculate_points_by_range_date
-from domein.categoryActions import get_all_categories, add_new_category
-from domein.userManagement import create_account
+from domein.categoryActions import get_all_categories_user, add_new_category
+from domein.userManagement import create_user, get_user
+
+from account import Account, load_account_file, save_account_to_file
+from times import start_end_this_week, start_end_last_week, start_end_next_week, start_end_this_month, start_end_last_month, start_end_next_month
 
 class Main_Window(): 
     
@@ -30,66 +33,67 @@ class Main_Window():
         if self.selected.get() == 0:
             self.lblWarning.configure(text='Geen categorie geselecteerd')
         else :
-            print(self.categories[self.selected.get() - 1][4])
-            if self.entryMoney.get() == '' and self.categories[self.selected.get() - 1][5] == 0:
-                message = add_activity_by_id(self.selected.get())
+           
+            # hour/once 
+            if self.categories[self.selected.get() - 1][4] == 1 or self.categories[self.selected.get() - 1][6] == 1:
+                message = add_activity_by_id(self.account.id, self.selected.get())
                 self.set_warning_add(message)
+            
             else :
-                try :
-                    if int(self.entryMoney.get()) > 0:
-                        message = add_activity_by_id(self.selected.get(), self.entryMoney.get())
+                
+                try : # money and pot
+                    
+                    if int(self.entryMoney.get()) > 0 and (self.categories[self.selected.get() - 1][5] == 1 or 
+                    self.categories[self.selected.get() - 1][7] == 1): # money and pot
+                        
+                        message = add_activity_by_id(self.account.id, self.selected.get(), self.entryMoney.get())
                         self.entryMoney.configure(text = '')
-                        self.set_warning_add(message)
+                        self.set_warning_add(message)                    
+                    
                     elif int(self.entryMoney.get()) <= 0:
                         self.lblWarning.configure(text = f"Geen getal onder de 1!")
+                
                 except ValueError :
                     self.lblWarning.configure(text = f"Er moet een getal worden ingevoerd!")
             
     def set_warning_add(self, message):
         if message == 'start': 
-            self.lblWarning.configure(text = f"Start")
+            self.lblWarning.configure(text = f"Start {self.names[self.selected.get() - 1]}")
         elif message == 'end':
-            self.lblWarning.configure(text = f"Einde")
+            self.lblWarning.configure(text = f"Einde {self.names[self.selected.get() - 1]}")
         elif message == 'succes_money':
             self.lblWarning.configure(text=f'€{self.entryMoney.get()},- toegevoegd bij {self.names[self.selected.get() - 1]}!!')
         elif message == 'succes_once':
-            self.lblWarning.configure(text=f'once opgeslagen!!')
-        elif message == 'already_saved':
-            self.lblWarning.configure(text='Is al opgeslagen') 
+            self.lblWarning.configure(text=f'{self.names[self.selected.get() - 1]} opgeslagen!!')
+        elif message == 'already_saved': 
+            self.lblWarning.configure(text=f'{self.names[self.selected.get() - 1]} is al opgeslagen') 
+        elif message == 'succes_pot':
+            self.lblWarning.configure(text=f'€{self.entryMoney.get()} toegevoegd aan: {self.names[self.selected.get() - 1]}!')
 
     # new windows
     def new_category(self):
         #winfo_children()
         self.forget_all_main()
-        New_Category_Window(self.window)
+        New_Category_Window(self.window, self.account)
 
     def make_plot(self):
         self.forget_all_main()
-        Plot_Canvas(self.window)
+        Plot_Window(self.window, self.account)
 
     def forget_all_main(self):
-        # buttons
-        self.btnSSM.place_forget()
-        self.btnCategory.place_forget()
-        self.btnPlot.place_forget()
+        children = self.window.winfo_children()
         
-        # radio boxes
-        for i in self.rads:
-            i.place_forget()
-
-        # entries
-        self.entryMoney.place_forget()
-
-        # labels
-        self.lblWarning.place_forget()
-        self.lblMoney.place_forget()
+        for child in children:
+            child.place_forget()
     
-    def __init__(self, window):
-        ### window settings ###
+    def __init__(self, window, account):
         self.window = window
+        self.account = account
+        
+        ### window settings ###
         self.window.title("Tracker - Main (dev)")
         # width x height + x_offset + y_offset:
-        self.window.geometry('500x400+30+30')
+        self.window.geometry('500x500+30+30')
 
         self.nav_size = 150
 
@@ -101,8 +105,8 @@ class Main_Window():
 
         # radio boxes
         self.selected = IntVar()
-        self.categories = select_all_from_category()
-        self.names = [name[1].replace('_', ' ') for name in self.categories]
+        self.categories = get_all_categories_user(account.id)
+        self.names = [name[2].replace('_', ' ') for name in self.categories]
         self.indexes = [i[0] for i in self.categories]
         self.values = [i for i in range(1, len(self.names) + 1)]
         self.rads = []
@@ -139,34 +143,43 @@ class New_Category_Window():
     
     ### function part of the new category window function
     def add_category(self):
-        message = add_new_category(self.selected.get(), self.entryName.get(), self.entryPoints.get())
-        self.entryName.configure(text='')
-        self.entryPoints.configure(text='')
-       
+        try :
+            if self.selected.get() == 4 and self.entryPotAmount.get() != '':
+                start = self.string_time_to_database_time(self.entryPotStart.get())
+                end = self.string_time_to_database_time(self.entryPotEnd.get())
+                message = add_new_category(self.selected.get(), self.entryName.get(), 
+                self.entryPoints.get(), self.account.id, self.entryPotAmount.get(), datetime.today(), start, end)
+                self.lblWarning.configure(text='Gelukt!')
+            else :
+                message = add_new_category(self.selected.get(), self.entryName.get(), self.entryPoints.get(), self.account.id)
+                self.entryName.configure(text='')
+                self.entryPoints.configure(text='')
+                self.lblWarning.configure(text='Gelukt!')
+        
+        except ValueError:
+            self.lblWarning.configure(text = 'Alleen getallen!')
+    
+    def string_time_to_database_time(self, date):
+        date = datetime.strptime(date, '%d/%m/%Y')
+        return date.strftime('%Y-%m-%d')
+
     def load_main_window(self):
         self.forget_all_new()
-        Main_Window(self.window)
+        Main_Window(self.window, self.account)
 
     def forget_all_new(self):
-        # buttons
-        self.btnMain.place_forget()
-        self.btnAdd.place_forget()
-        # radio buttons
-        self.rbMoney.place_forget()
-        self.rbTime.place_forget()
-        self.rbOnce.place_forget()
-        # entries
-        self.entryName.place_forget()
-        self.entryPoints.place_forget()
-        # labels
-        self.lblName.place_forget()
-        self.lblPoints.place_forget()
+        children = self.window.winfo_children()
+        
+        for child in children:
+            child.place_forget()
 
-    def __init__(self, window):
+    def __init__(self, window, account):
+        self.window = window 
+        self.account = account
+        
         ### window settings ###
-        self.window = window
         self.window.title("Tracker - Nieuwe categorie")
-        self.window.geometry('300x250')
+        self.window.geometry('300x420')
 
         ### instantiate widgets ###
         # buttons
@@ -174,58 +187,70 @@ class New_Category_Window():
         self.btnAdd = Button(self.window, text='Toevoegen', command=self.add_category, width = 20, height = 2)
         
         # entries
-        self.entryName = Entry(self.window, width=20)
-        self.entryPoints = Entry(self.window, width=20)  
+        self.entryName = Entry(self.window, width = 20, text='post-test')
+        self.entryPoints = Entry(self.window, width = 20, text='1')
+        self.entryPotAmount = Entry(self.window, width = 20, text='0') 
+        self.entryPotStart = Entry(self.window, width = 20, text='19/11/2018')
+        self.entryPotEnd = Entry(self.window, width = 20, text='16/12/2018')
 
         # radio buttons
         self.selected = IntVar()
         self.rbTime = Radiobutton(self.window,text='Tijd', value=1, variable=self.selected)
         self.rbMoney = Radiobutton(self.window,text='Geld', value=2, variable=self.selected)  
         self.rbOnce = Radiobutton(self.window,text='Eenmalig', value=3, variable=self.selected) 
+        self.rbPot = Radiobutton(self.window,text='Pot', value=4, variable=self.selected) 
 
         # labels
-        self.lblName = Label(self.window, text='Naam', fg='blue')
-        self.lblPoints = Label(self.window, text='Punten', fg='blue')
+        self.lblName = Label(self.window, text='Naam:', fg='blue')
+        self.lblPoints = Label(self.window, text='Punten:', fg='blue')
+        self.lblPot = Label(self.window, text='Pot:', fg='blue')
+        self.lblPotStart = Label(self.window, text='Pot Start:', fg='blue')
+        self.lblPotEnd = Label(self.window, text='Pot Einde:', fg='blue')
+        self.lblDateExample = Label(self.window, text='Voorbeeld: 31/05/2018', fg='orange')
+        self.lblWarning = Label(self.window, text='test', fg='red')
 
         ### set grid ###
-        self.xC = 60
-        self.btn_size = 190
+        xC = 80
+        yC = 45
+        btn_size = 190
         # buttons
-        self.btnAdd.place(x = self.xC + 1, y = 155, width = self.btn_size)
-        self.btnMain.place(x = self.xC + 1, y = 195, width = self.btn_size)
+        self.btnAdd.place(x = xC + 1, y = 300, width = btn_size)
+        self.btnMain.place(x = xC + 1, y = 340, width = btn_size)
 
-        # text fields
-        self.entryName.place(x = self.xC, y = 5)
-        self.entryPoints.place(x = self.xC, y = 120)
+        # entry fields
+        self.entryName.place(x = xC, y = 5)
+        self.entryPoints.place(x = xC, y = yC + 25 * 4)
+        self.entryPotAmount.place(x = xC, y = yC + 25 * 5 + 7)
+        self.entryPotStart.place(x = xC, y = yC + 25 * 7 + 7 * 2)
+        self.entryPotEnd.place(x = xC, y = yC + 25 * 8 + 7 * 3) 
 
         # radio buttons
-        self.rbTime.place(x = self.xC, y = 45)
-        self.rbMoney.place(x = self.xC, y = 70)
-        self.rbOnce.place(x = self.xC, y = 95)
+        self.rbTime.place(x = xC, y = yC)
+        self.rbMoney.place(x = xC, y = yC + 25)
+        self.rbOnce.place(x = xC, y = yC + 25 * 2)
+        self.rbPot.place(x = xC, y = yC + 25 * 3)
 
         # labels
         self.lblName.place(x = 5, y = 5)
-        self.lblPoints.place(x = 5, y = 120)
+        self.lblPoints.place(x = 5, y = yC + 25 * 4)
+        self.lblPot.place(x = 5, y = yC + 25 * 5 + 10)
+        self.lblPotStart.place(x = 5, y = yC + 25 * 7 + 7 * 2)
+        self.lblPotEnd.place(x = 5, y = yC + 25 * 8 + 7 * 3)
 
-class Plot_Canvas():
+        self.lblDateExample.place(x = xC, y = yC + 25 * 6 + 7 * 2)
+        self.lblWarning.place(x = xC + 75, y = 380)
+
+class Plot_Window():
     ### function part of the new category window function
     def go_main_window(self):
         self.forget_all_canvas()
-        Main_Window(self.window)
+        Main_Window(self.window, self.account)
 
     def forget_all_canvas(self):
-        # canvas
-        self.canvas.get_tk_widget().destroy()
-        # buttons
-        self.btnMain.place_forget()
-        self.btnThisWeek.place_forget() 
-        self.btnThisMonth.place_forget() 
-        #btnThisYear.pack_forget() 
-        self.btnLastWeek.place_forget()
-        self.btnNextWeek.place_forget()
-        self.btnLastMonth.place_forget()
-        self.btnNextMonth.place_forget() 
-        self.lblWarnig.place_forget()
+        children = self.window.winfo_children()
+        
+        for child in children:
+            child.place_forget()
 
     def hide_warnings(self):
         self.lblWarnig.configure(text = '')
@@ -295,9 +320,11 @@ class Plot_Canvas():
         self.canvas.show()
         self.canvas.get_tk_widget().place(x = 125, y = 200, width = 1150, height = 550)
 
-    def __init__(self, window):   
+    def __init__(self, window, account):  
+        self.window = window 
+        self.account = account
+        
         ### window ###
-        self.window = window
         self.window.title('Tracker - Plot')
         self.window.geometry('1400x740')
 
@@ -342,120 +369,128 @@ class Plot_Canvas():
 
         self.set_this_week()
 
-def main(): 
-    # set window
-    window = Tk()
+class make_account_window():
 
-def make_account_window(window):
+    def go_main_window(self):
+        self.forget_all_make_account()
+        Main_Window(self.window, self.account)
 
-    def go_main_window():
-        forget_all_make_account()
-        main_window(window)
-
-    def forget_all_make_account():
-        buttonAdd.place_forget()
-        buttonLogin.place_forget()
+    def forget_all_make_account(self):
+        children = self.window.winfo_children()
         
-        entryName.place_forget()
-        entryPassword.place_forget()
-        entryPasswordCheck.place_forget()
+        for child in children:
+            child.place_forget()
 
-        lblName.place_forget()
-        lblPassword.place_forget()
-        lblPasswordChek.place_forget()
-
-        lblWarning.place_forget()
-
-    def create_account_event():
-        if check_form() :
-            if create_account(entryName.get(), entryPassword.get()) == 'succes':
-                with open('data/account.csv', 'w') as myfile:
-                    wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
-                    wr.writerow([entryName.get(), entryPassword.get()])
-                    go_main_window()
+    def create_account_event(self):
+        if self.check_form_create() :
+            if save_account_to_file([self.entryName.get(), self.entryPassword.get()]) == 'succes':
+                create_user(self.entryName.get(), self.entryPassword.get())
+                self.account = Account(self.entryName.get())
+                self.go_main_window()
             else :
-                lblWarning.configure(text = 'Er is iets mis gegaan')
+                self.lblWarning.configure(text = 'Er is iets mis gegaan')
             
-    def check_form():
+    def check_form_create(self):
         message = ''
         check = True
-        if entryName.get() == '':
+        if self.entryName.get() == '':
             message = 'Vul een naam in\n'
-        if entryPassword.get() == '' or entryPasswordCheck.get() == '':
+        if self.entryPassword.get() == '' or self.entryPasswordCheck.get() == '':
             message += 'Vul een wachtwoord in\n'
-        if entryPassword.get() != entryPasswordCheck.get():
+        if self.entryPassword.get() != self.entryPasswordCheck.get():
             message += 'Wachtwoorden zijn niet het zelfde'
         if message != '':
             check = False
-            lblWarning.configure(text = message)
+            self.lblWarning.configure(text = message)
         return check   
+
+    def check_form_login(self): 
+        message = ''
+        check = True
+        if self.entryName.get() == '':
+            message = 'Vul een naam in\n'
+        if self.entryPassword.get() == '' :
+            message += 'Vul een wachtwoord in\n'
+        if message != '':
+            check = False
+            self.lblWarning.configure(text = message)
+        return check   
+
+    def login(self):
+        if self.check_form_login() :
+            user = get_user(self.entryName.get(), self.entryPassword.get())
+            if len(user) != 0 :
+                if save_account_to_file([user[1], self.entryPassword.get()]) == 'succes':
+                    self.account = Account(user[0], user[1])
+                    self.go_main_window()
+
+    def __init__(self, window):
+        self.window = window
+
+        ### window settings ###
+        self.window.title("Tracker - Account aanmaken (dev)")
+        # width x height + x_offset + y_offset:
+        self.window.geometry('400x195+30+30')
+
+        ### widgets ###
+
+        # buttons 
+
+        self.buttonAdd = Button(self.window, text="Maak aan", command=self.create_account_event, fg="green") 
+        self.buttonLogin = Button(self.window, text="Log in", command=self.login, fg="green") 
+
+        # entry
+        self.entryName = Entry(self.window)
+        self.entryPassword = Entry(self.window, show="*")
+        self.entryPasswordCheck = Entry(self.window, show="*")
         
+        # labels
+        self.lblName = Label(self.window, text='Name:')
+        self.lblPassword = Label(self.window, text='Password:')
+        self.lblPasswordChek = Label(self.window, text='Password Check:')
 
-    def login():
-        pass
+        self.lblWarning = Label(self.window, fg='red')
 
-    ### window settings ###
-    window.title("Tracker - Account aanmaken (dev)")
-    # width x height + x_offset + y_offset:
-    window.geometry('400x195+30+30')
+        ### set geo ###
 
-    ### widgets ###
+        self.buttonAdd.place(x = 140, y = 110, width = 100)
+        self.buttonLogin.place(x = 240, y = 110, width = 100)
 
-    # buttons 
+        # entry
+        x = 140
+        w = 200
+        self.entryName.place(x = x, y = 20, width = w)
+        self.entryPassword.place(x = x, y = 50, width = w)
+        self.entryPasswordCheck.place(x = x, y = 80, width = w)
+        
+        # labels
+        self.lblName.place(x = 20, y = 24)
+        self.lblPassword.place(x = 20, y = 54)
+        self.lblPasswordChek.place(x = 20, y = 84)
 
-    buttonAdd = Button(window, text="Maak aan", command=create_account_event, fg="green") 
-    buttonLogin = Button(window, text="Log in", command=login, fg="green") 
+        self.lblWarning.place(x = 140, y = 140)
 
-    # entry
-    entryName = Entry(window)
-    entryPassword = Entry(window, show="*")
-    entryPasswordCheck = Entry(window, show="*")
+def main(): 
+    # set window
+    window = Tk()
     
-    # labels
-    lblName = Label(window, text='Name:')
-    lblPassword = Label(window, text='Password:')
-    lblPasswordChek = Label(window, text='Password Check:')
+    try :
 
-    lblWarning = Label(window, fg='red')
+        account = load_account_file() # check if credentials a saved local
 
-    ### set geo ###
+        try : 
 
-    buttonAdd.place(x = 140, y = 110, width = 100)
-    buttonLogin.place(x = 240, y = 110, width = 100)
+            user = get_user(account[0], account[1]) # check if user excist in the database
+            account = Account(user[0], user[1]) # login
+            Main_Window(window, account) 
 
-    # entry
-    x = 140
-    w = 200
-    entryName.place(x = x, y = 20, width = w)
-    entryPassword.place(x = x, y = 50, width = w)
-    entryPasswordCheck.place(x = x, y = 80, width = w)
-    
-    # labels
-    lblName.place(x = 20, y = 24)
-    lblPassword.place(x = 20, y = 54)
-    lblPasswordChek.place(x = 20, y = 84)
+        except ValueError:  # change this to something better
+            pass
 
-    lblWarning.place(x = 140, y = 140)
+    except FileNotFoundError:
+        make_account_window(window)
 
-
-# set window
-window = Tk()
-
-
-try :
-    with open('data/account.csv', 'r') as f:
-        reader = csv.reader(f)
-        your_list = list(reader)
-    account = [i for i in your_list[0]]
-    main_window(window)
-
-except FileNotFoundError:
-    make_account_window(window)
-
-
-# load main window layout
-
-#plot_canvas(window)
+    window.mainloop()
 
 if __name__ == '__main__':
     main()
