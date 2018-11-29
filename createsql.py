@@ -25,18 +25,18 @@ cursor.execute('''
 ''')
 
 # categorie
-params = ('werken', True, False, False, 1)
+params = ('werken', True, False, False, False, 1)
 cursor = connection.cursor()
-cursor.execute('INSERT INTO category (name, time, money, once, points) VALUES(%s, %s, %s, %s, %s)', params)
+cursor.execute('INSERT INTO category (name, time, money, once, pot, points) VALUES(%s, %s, %s, %s, %s, %s)', params)
 
-params = ('roken', False, True, False, -3)
-cursor.execute('INSERT INTO category (name, time, money, once, points) VALUES(%s, %s, %s, %s, %s)', params)
+params = ('roken', False, True, False, False, -3)
+cursor.execute('INSERT INTO category (name, time, money, once, pot, points) VALUES(%s, %s, %s, %s, %s, %s)', params)
 
-params = ('ochtend_sporten', False, False, True, 2)
-cursor.execute('INSERT INTO category (name, time, money, once, points) VALUES(%s, %s, %s, %s, %s)', params)
+params = ('ochtend_sporten', False, False, True, False, 2)
+cursor.execute('INSERT INTO category (name, time, money, once, pot, points) VALUES(%s, %s, %s, %s, %s, %s)', params)
 
-params = ('fitness', False, False, True, 3)
-cursor.execute('INSERT INTO category (name, time, money, once, points) VALUES(%s, %s, %s, %s, %s)', params)
+params = ('fitness', False, False, True, False, 3)
+cursor.execute('INSERT INTO category (name, time, money, once, pot, points) VALUES(%s, %s, %s, %s, %s, %s)', params)
 
 # # once
 # params = (3, '2018-11-19')

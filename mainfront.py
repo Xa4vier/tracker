@@ -27,8 +27,8 @@ class Main_Window():
         if self.selected.get() == 0:
             self.lblWarning.configure(text='Geen categorie geselecteerd')
         else :
-            print(self.categories[self.selected.get() - 1][3])
-            if self.entryMoney.get() == '' and self.categories[self.selected.get() - 1][3] == 0:
+            print(self.categories[self.selected.get() - 1][4])
+            if self.entryMoney.get() == '' and self.categories[self.selected.get() - 1][5] == 0:
                 message = add_activity_by_id(self.selected.get())
                 self.set_warning_add(message)
             else :
