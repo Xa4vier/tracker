@@ -4,25 +4,60 @@ from datetime import *
 # Get a cursor object
 connection = create_connection()
 cursor = connection.cursor()
-cursor.execute('''
-    CREATE TABLE category(id INT AUTO_INCREMENT PRIMARY KEY, name TEXT,
-                       time BOOLEAN, money BOOLEAN, once BOOLEAN, points INTEGER)
-''')
+
+### user and groups ###
 
 cursor.execute('''
-    CREATE TABLE time(id INT AUTO_INCREMENT PRIMARY KEY, categoryId INTEGER,
+    CREATE TABLE User(id INT AUTO_INCREMENT PRIMARY KEY, 
+    name TEXT, password TEXT)
+    ''')
+
+cursor.execute('''
+    CREATE TABLE UserGroup(id INT AUTO_INCREMENT PRIMARY KEY, 
+    userId INT, groupId INT)
+    ''')
+
+cursor.execute('''
+    CREATE TABLE UserGroups(id INT AUTO_INCREMENT PRIMARY KEY, 
+    name TEXT)
+    ''')
+cursor.execute('''
+    CREATE TABLE Admin(id INT AUTO_INCREMENT PRIMARY KEY, 
+    groupId INT, userId INT)
+    ''')
+
+### categories ###
+
+cursor.execute('''
+    CREATE TABLE Category(id INT AUTO_INCREMENT PRIMARY KEY, name TEXT, userId INT, groupId INT,
+                       time BOOLEAN, money BOOLEAN, once BOOLEAN, pot BOOLEAN, points INT)
+                       ''')
+
+cursor.execute('''
+    CREATE TABLE Time(id INT AUTO_INCREMENT PRIMARY KEY, categoryId INT,
                        dateOf DATE, start TIME, end TIME)
-''')
+                       ''')
 
 cursor.execute('''
-    CREATE TABLE money(id INT AUTO_INCREMENT PRIMARY KEY, categoryId INTEGER,
-                       amount INTEGER, dateOf DATE)
-''')
+    CREATE TABLE Money(id INT AUTO_INCREMENT PRIMARY KEY, categoryId INT,
+                       amount INT, dateOf DATE)
+                       ''')
 
 cursor.execute('''
-    CREATE TABLE once(id INT AUTO_INCREMENT PRIMARY KEY, categoryId INTEGER,
+    CREATE TABLE Once(id INT AUTO_INCREMENT PRIMARY KEY, categoryId INT,
                        dateOf DATE)
-''')
+                       ''')
+
+cursor.execute('''
+    CREATE TABLE Pot(id INT AUTO_INCREMENT PRIMARY KEY, categoryId INT,
+                       amount INT, dateOf DATE, startDate Date, endDate Date,
+                       repeats BOOLEAN)
+                       ''')
+
+cursor.execute('''
+    CREATE TABLE Transaction(id INT AUTO_INCREMENT PRIMARY KEY, potId INT,
+                       userId INT, amount INT, dateOf Date)
+                       ''')
 
 # categorie
 params = ('werken', True, False, False, False, 1)
@@ -37,6 +72,8 @@ cursor.execute('INSERT INTO category (name, time, money, once, pot, points) VALU
 
 params = ('fitness', False, False, True, False, 3)
 cursor.execute('INSERT INTO category (name, time, money, once, pot, points) VALUES(%s, %s, %s, %s, %s, %s)', params)
+
+
 
 # # once
 # params = (3, '2018-11-19')
