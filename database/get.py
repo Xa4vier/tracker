@@ -3,12 +3,29 @@ from database.connection import create_connection
 def get_connection():
     return create_connection()
 
+### user ###
+
 def select_user_by_name(name):
     connection = get_connection()
     cursor = connection.cursor()
     cursor.execute = cursor.execute
     cursor.execute(f"SELECT * FROM User WHERE name = '{name}'")
     return cursor.fetchone()
+
+### groups ###
+
+# select all groups of the user if the user is a admin
+def select_groups_of_user(userId):
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute = cursor.execute
+    cursor.execute(f'''SELECT g.id, g.name FROM GroupsOf AS g
+    INNER JOIN Admin AS a
+    ON g.Id = a.groupId
+    INNER JOIN User AS u
+    ON a.userId = u.id
+    WHERE u.id = {userId}''')
+    return cursor.fetchall()
 
 ### category ###
 

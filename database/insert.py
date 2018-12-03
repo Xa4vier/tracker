@@ -13,6 +13,34 @@ def insert_user(name, password):
     connection.commit()
     connection.close()
 
+# group 
+
+def insert_group(name):
+    params = (name)
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute(f"INSERT INTO GroupsOf (name) VALUES('{name}')")
+    id = cursor.lastrowid
+    connection.commit()
+    connection.close()
+    return id
+
+def insert_usergroup(userId, groupId):
+    params = (userId, groupId)
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute('INSERT INTO UserGroup (userId, groupId) VALUES(%s, %s)', params)
+    connection.commit()
+    connection.close()
+
+def insert_admin(userId, groupId):
+    params = (userId, groupId)
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute('INSERT INTO Admin (userId, groupId) VALUES(%s, %s)', params)
+    connection.commit()
+    connection.close()
+
 # category
 
 def insert_category(name, time, money, once, pot, points, userId):

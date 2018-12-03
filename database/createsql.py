@@ -18,9 +18,8 @@ cursor.execute('''
     ''')
 
 cursor.execute('''
-    CREATE TABLE UserGroups(id INT AUTO_INCREMENT PRIMARY KEY, 
-    name TEXT)
-    ''')
+    CREATE TABLE GroupsOf(id INT AUTO_INCREMENT PRIMARY KEY, name TEXT)''')
+
 cursor.execute('''
     CREATE TABLE Admin(id INT AUTO_INCREMENT PRIMARY KEY, 
     groupId INT, userId INT)
@@ -61,9 +60,30 @@ cursor.execute('''
 
 # user
 
+# id = 1
 params = ('Xavier', 'gAAAAABcAEWIqijwIP1xIemm1F3474aOx9lS-UWRI11IAh8Kvn0NfS2Lsu_h55g8Jx2RbLfhnUwUg5_-XrQkfj9PJrSAR47x5Q==')
 cursor = connection.cursor()
 cursor.execute('INSERT INTO User (name, password) VALUES(%s, %s)', params)
+
+# id = 2
+params = ('Vera', 'gAAAAABcAEWIqijwIP1xIemm1F3474aOx9lS-UWRI11IAh8Kvn0NfS2Lsu_h55g8Jx2RbLfhnUwUg5_-XrQkfj9PJrSAR47x5Q==')
+cursor = connection.cursor()
+cursor.execute('INSERT INTO User (name, password) VALUES(%s, %s)', params)
+
+# Group
+
+# id = 1
+cursor = connection.cursor()
+cursor.execute("INSERT INTO GroupsOf (name) VALUES('Familie Moonen')")
+
+# id = 1
+params = (1, 1)
+cursor = connection.cursor()
+cursor.execute('INSERT INTO UserGroup (userId, groupId) VALUES(%s, %s)', params)
+
+params = (1, 1)
+cursor = connection.cursor()
+cursor.execute('INSERT INTO Admin (userId, groupId) VALUES(%s, %s)', params)
 
 # categorie
 params = (1, 'werken', True, False, False, False, 1)

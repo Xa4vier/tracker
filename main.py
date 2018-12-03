@@ -22,9 +22,11 @@ from domein.procesActivities import add_activity_by_id
 from domein.pointCalculcation import calculate_points_by_range_date
 from domein.categoryActions import get_all_categories_user, add_new_category
 from domein.userManagement import create_user, get_user
+from domein.groupManagement import create_group, get_all_groups_admin
 
 from account import Account, load_account_file, save_account_to_file
 from times import start_end_this_week, start_end_last_week, start_end_next_week, start_end_this_month, start_end_last_month, start_end_next_month
+
 
 class Main_Window(): 
     
@@ -76,6 +78,10 @@ class Main_Window():
         self.forget_all_main()
         New_Category_Window(self.window, self.account)
 
+    def group_management(self):
+        self.forget_all_main()
+        Group_Management_Window(self. window, self.account)
+
     def make_plot(self):
         self.forget_all_main()
         Plot_Window(self.window, self.account)
@@ -85,7 +91,7 @@ class Main_Window():
         
         for child in children:
             child.place_forget()
-    
+
     def __init__(self, window, account):
         self.window = window
         self.account = account
@@ -100,8 +106,10 @@ class Main_Window():
         ### instantiate widgets ###
         # buttons
         self.btnSSM = Button(self.window, text="Start/Stop/Amount", command=self.add_activity, fg="green") 
+        
         self.btnCategory = Button(self.window, text="nieuwe categorie", command=self.new_category, width = 14, height = 1) 
         self.btnPlot = Button(self.window, text="plot", command=self.make_plot, width = 14, height = 1) 
+        self.btnGroup = Button(self.window, text='Beheer groep', command=self.group_management, width = 14, height = 1)
 
         # radio boxes
         self.selected = IntVar()
@@ -127,6 +135,7 @@ class Main_Window():
         # nav buttons
         self.btnCategory.place(x = 10, y = 10, width = self.nav_size)
         self.btnPlot.place(x = (self.nav_size + 20) * 1, y = 10, width = self.nav_size)
+        self.btnGroup.place(x = (self.nav_size + 20) * 2 - 10, y = 10, width = self.nav_size)
 
         # radio buttons
         for i in range(len(self.rads)):
@@ -209,7 +218,7 @@ class New_Category_Window():
         self.lblDateExample = Label(self.window, text='Voorbeeld: 31/05/2018', fg='orange')
         self.lblWarning = Label(self.window, text='test', fg='red')
 
-        ### set grid ###
+        ### set Geo ###
         xC = 80
         yC = 45
         btn_size = 190
@@ -369,7 +378,156 @@ class Plot_Window():
 
         self.set_this_week()
 
-class make_account_window():
+### Group actions ###
+
+# the view with all the buttons to go to group actions
+class Group_Management_Window():
+
+    def load_main_window(self):
+        self.forget_all()
+        Main_Window(self.window, self.account)
+
+    def load_create_group(self):
+        self.forget_all()
+        Make_Group_Window(self.window, self.account)
+
+    def load_add_user(self):
+        self.forget_all()
+        Add_User_Group_Window(self.window, self.account)
+
+    def forget_all(self):
+        for child in self.window.winfo_children() :
+            child.place_forget()
+
+    def __init__(self, window, account):
+        self.window = window
+        self.account = account
+        
+        ### window settings ###
+        self.window.title('Tracker - Groepen beheer')
+        # width x height + x_offset + y_offset:
+        self.window.geometry('226x150')
+
+        ### widgets ###
+        # buttons
+        self.btnMain = Button(self.window, text='Main', command=self.load_main_window, width = 20, height = 2)
+        self.btnCreate = Button(self.window, text='Nieuwe groep', command=self.load_create_group, width = 20, height = 2)
+        self.btnAddUser = Button(self.window, text='Gebruiker toevoegen', command=self.load_add_user, width = 20, height = 2)
+
+        ### geo ###
+        # buttons
+
+        xC = 20
+        yC = 20
+        self.btnMain.place(x = xC, y = yC)
+        self.btnCreate.place(x = xC, y = yC + 40 * 1)
+        self.btnAddUser.place(x = xC, y = yC + 40 * 2)
+
+# the view to make a group
+class Make_Group_Window():
+
+    def add_group(self):
+        if self.entryName.get() != '':
+            message = create_group(self.account.id, self.entryName.get())
+            self.lblWarning.configure(text=f'{message}')
+        else :
+            self.lblWarning.configure(text='Geen naam ingevuld!')
+
+    def load_management_window(self):
+        for child in self.window.winfo_children():
+            child.place_forget()
+        Group_Management_Window(self.window, self.account)
+
+
+    def __init__(self, window, account):
+        self.window = window
+        self.account = account
+        
+        ### window settings ###
+        self.window.title("Tracker - Groep Maken")
+        # width x height + x_offset + y_offset:
+        self.window.geometry('300x200')
+
+        ### widgets ###
+
+        # buttons
+        self.btnAdd = Button(self.window, text='Toevoegen', command=self.add_group, width = 20, height = 2)
+        self.btnMain = Button(self.window, text="Groep beheer", command=self.load_management_window, width = 20, height = 2)
+
+        # entry fields
+        self.entryName = Entry(self.window, width = 20, text='post-test')
+
+        # labels
+        self.lblName = Label(self.window, text='Naam:', fg='blue')
+        self.lblWarning = Label(self.window, fg='red')
+
+        ### set Geo ###
+        xC = 80
+        btn_size = 190
+        # buttons
+        self.btnAdd.place(x = xC + 1, y = 50, width = btn_size)
+        self.btnMain.place(x = xC + 1, y = 90, width = btn_size)
+        
+        # entry fields
+        self.entryName.place(x = xC, y = 20)
+
+        # labels
+        self.lblName.place(x = 5, y = 20)
+
+        self.lblWarning.place(x = 110, y = 130)
+
+# the view to add users to a group that a user is admin of
+class Add_User_Group_Window():
+
+    def load_management_window(self):
+        for child in self.window.winfo_children():
+            child.place_forget()
+        Group_Management_Window(self.window, self.account)
+
+    def search_group(self):
+        if self.entryGroupId.get() != '':
+            self.lblWarning1.configure(text = '')
+            groups = get_all_groups_admin(self.account.id)
+        else : 
+            self.lblWarning1.configure(text = 'Je moet iets invullen!')
+
+    def __init__(self, window, account):
+        self.window = window
+        self.account = account
+        
+        ### window settings ###
+        self.window.title("Tracker - Groep Maken")
+        # width x height + x_offset + y_offset:
+        self.window.geometry('300x100')
+
+        ### widgets ###
+
+        # Buttons 
+        self.btnSearch = Button(self.window, text="Zoek groepen", command=self.search_group, width = 14, height = 1) 
+
+        # Entry fields
+        self.entryGroupId = Entry(self.window)
+
+        # labels
+        self.lblId = Label(self.window, text="Groep Id :")
+        
+        self.lblWarning1 = Label(self.window, text="Je hebt een verkeerd iets ingevuld")
+
+        ### geo ###
+        xC = 90
+        # buttons
+        self.btnSearch.place(x = xC + 1, y = 50)
+
+        # entry fields
+        self.entryGroupId.place(x = xC, y = 10)
+
+        # labels
+        self.lblId.place(x = 10, y = 10)
+
+        self.lblWarning1.place(x = xC, y = 90)
+
+
+class Make_Account_Window():
 
     def go_main_window(self):
         self.forget_all_make_account()
@@ -482,13 +640,14 @@ def main():
 
             user = get_user(account[0], account[1]) # check if user excist in the database
             account = Account(user[0], user[1]) # login
-            Main_Window(window, account) 
+            #Main_Window(window, account) 
+            Add_User_Group_Window(window, account)
 
         except ValueError:  # change this to something better
             pass
 
     except FileNotFoundError:
-        make_account_window(window)
+        Make_Account_Window(window)
 
     window.mainloop()
 
