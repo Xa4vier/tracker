@@ -72,18 +72,44 @@ cursor.execute('INSERT INTO User (name, password) VALUES(%s, %s)', params)
 
 # Group
 
-# id = 1
-cursor = connection.cursor()
-cursor.execute("INSERT INTO GroupsOf (name) VALUES('Familie Moonen')")
+# # id = 1
+# cursor = connection.cursor()
+# cursor.execute("INSERT INTO GroupsOf (name) VALUES('Familie Moonen')")
 
-# id = 1
-params = (1, 1)
-cursor = connection.cursor()
-cursor.execute('INSERT INTO UserGroup (userId, groupId) VALUES(%s, %s)', params)
+# # id = 1
+# params = (1, 1)
+# cursor = connection.cursor()
+# cursor.execute('INSERT INTO UserGroup (userId, groupId) VALUES(%s, %s)', params)
 
-params = (1, 1)
-cursor = connection.cursor()
-cursor.execute('INSERT INTO Admin (userId, groupId) VALUES(%s, %s)', params)
+# params = (1, 1)
+# cursor = connection.cursor()
+# cursor.execute('INSERT INTO Admin (userId, groupId) VALUES(%s, %s)', params)
+
+# # id = 2
+# cursor = connection.cursor()
+# cursor.execute("INSERT INTO GroupsOf (name) VALUES('Familie Moonen 2')")
+
+# # id = 2
+# params = (1, 2)
+# cursor = connection.cursor()
+# cursor.execute('INSERT INTO UserGroup (userId, groupId) VALUES(%s, %s)', params)
+
+# params = (1, 2)
+# cursor = connection.cursor()
+# cursor.execute('INSERT INTO Admin (userId, groupId) VALUES(%s, %s)', params)
+
+# # id = 3
+# cursor = connection.cursor()
+# cursor.execute("INSERT INTO GroupsOf (name) VALUES('Familie Moonen 3')")
+
+# # id = 1
+# params = (1, 3)
+# cursor = connection.cursor()
+# cursor.execute('INSERT INTO UserGroup (userId, groupId) VALUES(%s, %s)', params)
+
+# params = (1, 3)
+# cursor = connection.cursor()
+# cursor.execute('INSERT INTO Admin (userId, groupId) VALUES(%s, %s)', params)
 
 # categorie
 params = (1, 'werken', True, False, False, False, 1)
@@ -99,12 +125,12 @@ cursor.execute('INSERT INTO Category (userId, name, time, money, once, pot, poin
 params = (1, 'fitness', False, False, True, False, 3)
 cursor.execute('INSERT INTO Category (userId, name, time, money, once, pot, points) VALUES(%s, %s, %s, %s, %s, %s, %s)', params)
 
-params = (1, 'Huishoudelijke Pot', False, False, False, True, 1)
-cursor.execute('INSERT INTO Category (userId, name, time, money, once, pot, points) VALUES(%s, %s, %s, %s, %s, %s, %s)', params)
+# params = (1, 'Huishoudelijke Pot', False, False, False, True, 1)
+# cursor.execute('INSERT INTO Category (userId, name, time, money, once, pot, points) VALUES(%s, %s, %s, %s, %s, %s, %s)', params)
 
-# pot
-params = (5, 0, '2018/11/19', '2018/11/19', '2018/12/16')
-cursor.execute('INSERT INTO Pot (categoryId, amount, dateOf, startDate, endDate) VALUES(%s, %s, %s, %s, %s)', params)
+# # pot
+# params = (5, 0, '2018/11/19', '2018/11/19', '2018/12/16')
+# cursor.execute('INSERT INTO Pot (categoryId, amount, dateOf, startDate, endDate) VALUES(%s, %s, %s, %s, %s)', params)
 
 
 # # once

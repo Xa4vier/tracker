@@ -11,8 +11,10 @@ from tkinter import Tk, Button, Label, Entry, Radiobutton, IntVar
 from datetime import datetime
 import csv
 
+
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT
 
 # interface packages
 
@@ -21,8 +23,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from domein.procesActivities import add_activity_by_id
 from domein.pointCalculcation import calculate_points_by_range_date
 from domein.categoryActions import get_all_categories_user, add_new_category
-from domein.userManagement import create_user, get_user
-from domein.groupManagement import create_group, get_all_groups_admin
+from domein.userManagement import create_user, get_user, get_user_by_id
+from domein.groupManagement import create_group, get_all_groups_with_admin_id, get_all_groups_admin_with_group_id, add_user_to_group
 
 from account import Account, load_account_file, save_account_to_file
 from times import start_end_this_week, start_end_last_week, start_end_next_week, start_end_this_month, start_end_last_month, start_end_next_month
@@ -45,16 +47,20 @@ class Main_Window():
                 
                 try : # money and pot
                     
-                    if int(self.entryMoney.get()) > 0 and (self.categories[self.selected.get() - 1][5] == 1 or 
-                    self.categories[self.selected.get() - 1][7] == 1): # money and pot
-                        
+                    def save_money():
                         message = add_activity_by_id(self.account.id, self.selected.get(), self.entryMoney.get())
                         self.entryMoney.configure(text = '')
-                        self.set_warning_add(message)                    
-                    
-                    elif int(self.entryMoney.get()) <= 0:
+                        self.set_warning_add(message)  
+
+                    if int(self.entryMoney.get()) > 0 and self.categories[self.selected.get() - 1][5] == 1: # money
+                        save_money()      
+                                  
+                    elif int(self.entryMoney.get()) < 1 and self.categories[self.selected.get() - 1][5] == 1:
                         self.lblWarning.configure(text = f"Geen getal onder de 1!")
-                
+
+                    elif self.categories[self.selected.get() - 1][7] == 1:
+                        save_money()
+
                 except ValueError :
                     self.lblWarning.configure(text = f"Er moet een getal worden ingevoerd!")
             
@@ -101,8 +107,6 @@ class Main_Window():
         # width x height + x_offset + y_offset:
         self.window.geometry('500x500+30+30')
 
-        self.nav_size = 150
-
         ### instantiate widgets ###
         # buttons
         self.btnSSM = Button(self.window, text="Start/Stop/Amount", command=self.add_activity, fg="green") 
@@ -125,44 +129,64 @@ class Main_Window():
         self.entryMoney = Entry(self.window)
 
         # labels
+        self.lblInfo = Label(self.window, text=f'Welkom {self.account.name}! ID : {self.account.id}', fg='orange')
         self.lblMoney = Label(self.window, text='Geld:', fg='blue')
         self.lblWarning = Label(self.window, fg='red')
 
         ### set geo ###
+        xC = 10
+        nav_size = 150
         # buttons
-        self.btnSSM.place(x = 10, y = 40 ,width = 250, height = 150)
+        self.btnSSM.place(x = xC, y = 70 ,width = 250, height = 150)
         
         # nav buttons
-        self.btnCategory.place(x = 10, y = 10, width = self.nav_size)
-        self.btnPlot.place(x = (self.nav_size + 20) * 1, y = 10, width = self.nav_size)
-        self.btnGroup.place(x = (self.nav_size + 20) * 2 - 10, y = 10, width = self.nav_size)
+        self.btnCategory.place(x = xC, y = 40, width = nav_size)
+        self.btnPlot.place(x = (nav_size + 20) * 1, y = 40, width = nav_size)
+        self.btnGroup.place(x = (nav_size + 20) * 2 - 10, y = 40, width = nav_size)
 
         # radio buttons
         for i in range(len(self.rads)):
-            self.rads[i].place(x = 40, y = 240 + 25 * i)
+            self.rads[i].place(x = xC + 30, y = 270 + 25 * i)
 
         # entry
-        self.entryMoney.place(x = 60, y = 260 + len(self.rads) * 25)
+        self.entryMoney.place(x = xC + 50, y = 290 + len(self.rads) * 25)
 
         # labels
-        self.lblMoney.place(x = 10, y = 260 + len(self.rads) * 25)
-        self.lblWarning.place(x = 40, y = 210)
+        self.lblInfo.place(x = xC, y = 10)
+        self.lblMoney.place(x = xC, y = 290 + len(self.rads) * 25)
+        self.lblWarning.place(x = xC + 30, y = 250)
 
 class New_Category_Window():
     
     ### function part of the new category window function
     def add_category(self):
+        
         try :
-            if self.selected.get() == 4 and self.entryPotAmount.get() != '':
+            if self.selected.get() == 4 and self.entryPotAmount.get() != '': # if the pot amount is selected
+                
                 start = self.string_time_to_database_time(self.entryPotStart.get())
                 end = self.string_time_to_database_time(self.entryPotEnd.get())
-                message = add_new_category(self.selected.get(), self.entryName.get(), 
-                self.entryPoints.get(), self.account.id, self.entryPotAmount.get(), datetime.today(), start, end)
+                
+                if self.groupId == 0: # if a group is selected 
+                    message = add_new_category(self.selected.get(), self.entryName.get(), 
+                    self.entryPoints.get(), self.account.id, self.entryPotAmount.get(), datetime.today(), start, end)
+                
+                else :
+                    message = add_new_category(self.selected.get(), self.entryName.get(), 
+                    self.entryPoints.get(), self.account.id, self.groupId, self.entryPotAmount.get(), datetime.today(), start, end)
+
                 self.lblWarning.configure(text='Gelukt!')
             else :
-                message = add_new_category(self.selected.get(), self.entryName.get(), self.entryPoints.get(), self.account.id)
+
+                if self.groupId == 0: # if a group is seleted
+                    message = add_new_category(self.selected.get(), self.entryName.get(), self.entryPoints.get(), self.account.id)
+                
+                else :
+                    message = add_new_category(self.selected.get(), self.entryName.get(), self.entryPoints.get(), self.account.id, self.groupId)
+
                 self.entryName.configure(text='')
                 self.entryPoints.configure(text='')
+                
                 self.lblWarning.configure(text='Gelukt!')
         
         except ValueError:
@@ -182,9 +206,10 @@ class New_Category_Window():
         for child in children:
             child.place_forget()
 
-    def __init__(self, window, account):
+    def __init__(self, window, account, groupId = 0):
         self.window = window 
         self.account = account
+        self.groupId = groupId
         
         ### window settings ###
         self.window.title("Tracker - Nieuwe categorie")
@@ -266,32 +291,32 @@ class Plot_Window():
 
     def set_this_week(self):
         self.start, self.end = start_end_this_week()
-        self.set_canvas(self.start, self.end, calculate_points_by_range_date(self.start, self.end), 
+        self.set_canvas(self.start, self.end, calculate_points_by_range_date(self.start, self.end, self.account.id), 
         'This Week', range(1, 8), 'Days', 'Points', [self.min, 30])
     
     def last_week(self):     
         self.start, self.end = start_end_last_week(self.start)
-        self.set_canvas(self.start, self.end, calculate_points_by_range_date(self.start, self.end), 
+        self.set_canvas(self.start, self.end, calculate_points_by_range_date(self.start, self.end, self.account.id), 
         'last Week', range(1, 8), 'Days', 'Points', [self.min, 30])
 
     def next_week(self):      
         self.start, self.end = start_end_next_week(self.end)
-        self.set_canvas(self.start, self.end, calculate_points_by_range_date(self.start, self.end), 
+        self.set_canvas(self.start, self.end, calculate_points_by_range_date(self.start, self.end, self.account.id), 
         'Next Week', range(1, 8), 'Days', 'Points', [self.min, 30])
 
     def set_this_month(self):
         self.start, self.end = start_end_this_month()
-        self.set_canvas(self.start, self.end, calculate_points_by_range_date(self.start, self.end), 
+        self.set_canvas(self.start, self.end, calculate_points_by_range_date(self.start, self.end, self.account.id), 
         'This Month', range(1, self.end.day + 1), 'Days', 'Points', [self.min, 30])
 
     def next_month(self):      
         self.start, self.end = start_end_next_month(self.end)
-        self.set_canvas(self.start, self.end, calculate_points_by_range_date(self.start, self.end), 
+        self.set_canvas(self.start, self.end, calculate_points_by_range_date(self.start, self.end, self.account.id), 
         'Next Month', range(1, self.end.day + 1), 'Days', 'Points', [self.min, 30])
 
     def last_month(self):     
         self.start, self.end = start_end_last_month(self.start)
-        self.set_canvas(self.start, self.end, calculate_points_by_range_date(self.start, self.end), 
+        self.set_canvas(self.start, self.end, calculate_points_by_range_date(self.start, self.end, self.account.id), 
         'Last Month', range(1, self.end.day + 1), 'Days', 'Points', [self.min, 30])
 
     def set_canvas(self, start, end, points, title, xAxes, xLabel, yLabel, axHline):
@@ -326,8 +351,8 @@ class Plot_Window():
 
         # canvas
         self.canvas = FigureCanvasTkAgg(figure, self.window)
-        self.canvas.show()
-        self.canvas.get_tk_widget().place(x = 125, y = 200, width = 1150, height = 550)
+        self.canvas.draw()
+        self.canvas.get_tk_widget().place(x = 150, y = 200, width = 1000, height = 450)
 
     def __init__(self, window, account):  
         self.window = window 
@@ -368,10 +393,10 @@ class Plot_Window():
         self.btnThisMonth.place(x = 600, y = 170, width = btn_size)
         #btnThisYear.place()
         
-        self.btnLastWeek.place(x = 10, y = 375, width = btn_size_move)
-        self.btnNextWeek.place(x = 1290, y = 375, width = btn_size_move)
-        self.btnLastMonth.place(x = 10, y = 395, width = btn_size_move)
-        self.btnNextMonth.place(x = 1290, y = 395, width = btn_size_move)
+        self.btnLastWeek.place(x = 50, y = 375, width = btn_size_move)
+        self.btnNextWeek.place(x = 1150, y = 375, width = btn_size_move)
+        self.btnLastMonth.place(x = 50, y = 395, width = btn_size_move)
+        self.btnNextMonth.place(x = 1150, y = 395, width = btn_size_move)
 
         # labels
         # lblWarnig.pack(side=BOTTOM)
@@ -395,6 +420,10 @@ class Group_Management_Window():
         self.forget_all()
         Add_User_Group_Window(self.window, self.account)
 
+    def load_add_category(self):
+        self.forget_all()
+        Select_Group_For_Category(self.window, self.account)
+
     def forget_all(self):
         for child in self.window.winfo_children() :
             child.place_forget()
@@ -406,13 +435,14 @@ class Group_Management_Window():
         ### window settings ###
         self.window.title('Tracker - Groepen beheer')
         # width x height + x_offset + y_offset:
-        self.window.geometry('226x150')
+        self.window.geometry('226x200')
 
         ### widgets ###
         # buttons
         self.btnMain = Button(self.window, text='Main', command=self.load_main_window, width = 20, height = 2)
         self.btnCreate = Button(self.window, text='Nieuwe groep', command=self.load_create_group, width = 20, height = 2)
         self.btnAddUser = Button(self.window, text='Gebruiker toevoegen', command=self.load_add_user, width = 20, height = 2)
+        self.btnAddCategory = Button(self.window, text='Categorie Toevoegen', command=self.load_add_category, width = 20, height = 2)
 
         ### geo ###
         # buttons
@@ -422,6 +452,7 @@ class Group_Management_Window():
         self.btnMain.place(x = xC, y = yC)
         self.btnCreate.place(x = xC, y = yC + 40 * 1)
         self.btnAddUser.place(x = xC, y = yC + 40 * 2)
+        self.btnAddCategory.place(x = xC, y = yC + 40 * 3)
 
 # the view to make a group
 class Make_Group_Window():
@@ -484,49 +515,203 @@ class Add_User_Group_Window():
             child.place_forget()
         Group_Management_Window(self.window, self.account)
 
-    def search_group(self):
-        if self.entryGroupId.get() != '':
-            self.lblWarning1.configure(text = '')
-            groups = get_all_groups_admin(self.account.id)
-        else : 
-            self.lblWarning1.configure(text = 'Je moet iets invullen!')
+    # def search_group(self):
+    #     if self.entryGroupId.get() != '':
+    #         self.lblWarning1.configure(text = '')
+    #         group = get_all_groups_admin_by_group_id(self.account.id, int(self.entryGroupId.get())
+    #     else : 
+    #         self.lblWarning1.configure(text = 'Je moet iets invullen!')
+
+    # radio buttons - first view
+    def set_rb_groups(self):
+        self.groups = get_all_groups_with_admin_id(self.account.id)
+        self.radGroups = []
+        self.valuesGroups = [group[0] for group in self.groups]
+        self.namesGroups = [group[1] for group in self.groups]
+        for i in range(len(self.groups)):
+            self.radGroups.append(Radiobutton(self.window, text=f'Id: {self.valuesGroups[i]} - {self.namesGroups[i]}', value=self.valuesGroups[i], variable=self.selectedGroups))
+
+    def set_rb_groups_place(self): # and the button connected to the radio buttons
+        for i in range(len(self.radGroups)):
+            self.radGroups[i].place(x = self.xC, y = self.yC + 30 * i)
+        self.btnSelectGroup.place(x = self.xC + 1, y = self.yC + 30 * len(self.groups))
+        self.yC += (30 * len(self.groups) + 1)
+
+    # find a user to add to group - second view
+    def select_group(self):
+        self.show_group_label()
+        self.show_entry_group()
+
+    def show_group_label(self):
+        index = self.valuesGroups.index(self.selectedGroups.get())
+        self.lblGroup.configure(text = f'ID: {self.selectedGroups.get()} - {self.namesGroups[index]}')
+        self.lblGroup.place(x = self.xC, y = self.yC + 30 )
+
+    def show_entry_group(self):
+        self.entryPersonId.place(x = self.xC, y = self.yC + 55)
+        self.btnSearchPerson.place(x = self.xC + 1, y = self.yC + 90)
+        self.lblPId.place(x = 5, y = self.yC + 59)
+
+    # button to add user to group - thirt view
+    def search_person(self):
+        def show_warning1(text):
+            self.lblWarning1.configure(text = text) # person information afther selected
+            self.lblWarning1.place(x = self.xC , y = self.yC + 120)
+        self.lblWarning2.configure(text = '')
+        try : 
+            if self.entryPersonId.get() != '':
+                self.tempAdd = get_user_by_id(int(self.entryPersonId.get())) # gives back a person row
+                if self.tempAdd != None:
+                    show_warning1(f'Name: {self.tempAdd[1]}')
+                    self.btnAddPerson.place(x = self.xC, y = self.yC + 150)
+                else :
+                    show_warning1('Geen persoon gevonden!')
+            else :
+                show_warning1('Je moet iets invullen!')
+        except ValueError :
+            show_warning1('Je moet een getal invullen!')
+
+    # add user to the database
+    def add_person(self):
+        message = add_user_to_group(self.account.id, self.tempAdd[0], self.selectedGroups.get())
+        if message == 'succes':
+            self.lblWarning2.configure(text = f'{self.tempAdd[1]} Toegevoegd!')
+        else :
+            self.lblWarning2.configure(text = message)
+        self.lblWarning2.place(x = self.xC, y = self.yC + 180)
+
+    def load_main(self):
+        self.forget_all()
+        Main_Window(self.window, self.account)
+
+    def load_group_menu(self):
+        self.forget_all()
+        Group_Management_Window(self.window, self.account)
+
+    def forget_all(self):
+        for child in self.window.winfo_children() :
+            child.place_forget()
+
+    def __init__(self, window, account):
+        self.window = window
+        self.account = account
+        
+        # radio buttons to select group
+        self.groups = []
+        self.radGroups = []
+        self.selectedGroups = IntVar()
+        self.valuesGroups = []
+        self.namesGroups = []
+
+        # temp person to add
+        self.tempAdd = ''
+
+        ### window settings ###
+        self.window.title("Tracker - Groep Maken")
+        # width x height + x_offset + y_offset:
+        self.window.geometry('400x400')
+
+        ### start coord
+        self.xC = 90
+        self.yC = 10
+        ### widgets ###
+
+        # Buttons 
+        # navigations
+        self.btnMain = Button(self.window, text='Main', command=self.load_main, width = 14, height = 1)
+        self.btnGroupNav = Button(self.window, text='Group Menu', command=self.load_management_window, width = 14, height = 1)
+
+        #self.btnSearch = Button(self.window, text="Zoek groepen", command=self.search_group, width = 14, height = 1) 
+        self.btnSelectGroup = Button(self.window, text='Selecteer Groep', command=self.select_group, width = 14, height = 1)
+        self.btnSearchPerson = Button(self.window, text='Zoek Persoon', command=self.search_person, width = 14, height = 1)
+        self.btnAddPerson = Button(self.window, text='Voeg Persoon Toe', command=self.add_person, width = 14, height = 1)
+
+        # Entry fields
+        #self.entryGroupId = Entry(self.window)
+        self.entryPersonId = Entry(self.window)
+
+        # Radio Buttons
+        self.set_rb_groups()
+
+        # labels
+        #self.lblId = Label(self.window, text="Groep ID :")
+        self.lblPId = Label(self.window, text = 'Person ID:', fg='blue')
+        self.lblGroup = Label(self.window, fg='orange')
+        
+        self.lblWarning1 = Label(self.window, fg='red')
+        self.lblWarning2 = Label(self.window, text='Toegevoegd', fg='red')
+
+        
+        ### geo ###
+        # buttons
+        #self.btnSearch.place(x = xC + 1, y = 50)
+        self.btnMain.place(x = self.xC - 50, y = self.yC)
+        self.btnGroupNav.place(x = self.xC + 100, y = self.yC)
+
+        self.yC += 40 
+
+        # entry fields
+        #self.entryGroupId.place(x = xC, y = 10)
+
+        # radio buttons
+        self.set_rb_groups_place()
+
+        # labels
+        #self.lblId.place(x = 10, y = 10)
+
+class Select_Group_For_Category():
+    def load_new_category(self):
+        if self.selected.get() > 0:
+            for child in self.window.winfo_children() :
+                child.place_forget()          
+            New_Category_Window(self.window, self.account, self.selected.get())
+        else :
+            self.lblWarning.configure(text = "Je moet iets selecteren")
 
     def __init__(self, window, account):
         self.window = window
         self.account = account
         
         ### window settings ###
-        self.window.title("Tracker - Groep Maken")
+        self.window.title('Tracker - Groepen Selecteren')
         # width x height + x_offset + y_offset:
-        self.window.geometry('300x100')
+        #self.window.geometry('226x150')
 
         ### widgets ###
-
-        # Buttons 
-        self.btnSearch = Button(self.window, text="Zoek groepen", command=self.search_group, width = 14, height = 1) 
-
-        # Entry fields
-        self.entryGroupId = Entry(self.window)
-
-        # labels
-        self.lblId = Label(self.window, text="Groep Id :")
+        # button
+        self.btnSelectGroup = Button(self.window, text='Selecteer groep', command = self.load_new_category)
         
-        self.lblWarning1 = Label(self.window, text="Je hebt een verkeerd iets ingevuld")
+        #radio buttons
+        self.selected = IntVar()
+        groups = get_all_groups_with_admin_id(self.account.id)
+        self.values = [group[0] for group in groups]
+        names = [group[1] for group in groups]
+        rads = []
+        for i in range(len(groups)):
+            rads.append(Radiobutton(self.window, text=f'{names[i]}', value=self.values[i], variable=self.selected))
+        
+        # labels
+        self.lblWarning = Label(fg='red')
 
         ### geo ###
-        xC = 90
-        # buttons
-        self.btnSearch.place(x = xC + 1, y = 50)
+        # first radio button
+        xC = 10
+        yC = 10
+        for i in range(len(rads)):
+            rads[i].place(x = xC, y = yC + 30 * i)
 
-        # entry fields
-        self.entryGroupId.place(x = xC, y = 10)
+        # second button
+        self.btnSelectGroup.place(x = xC, y = yC + 30 * len(rads))
 
-        # labels
-        self.lblId.place(x = 10, y = 10)
+        # label
+        self.lblWarning.place(x = xC, y = yC + 30 * len(rads) + 30)
 
-        self.lblWarning1.place(x = xC, y = 90)
+        # set window 
+        self.window.geometry(f'200x{(len(rads) * 35 + 50)}')
 
 
+
+### account options ###
 class Make_Account_Window():
 
     def go_main_window(self):
@@ -542,8 +727,8 @@ class Make_Account_Window():
     def create_account_event(self):
         if self.check_form_create() :
             if save_account_to_file([self.entryName.get(), self.entryPassword.get()]) == 'succes':
-                create_user(self.entryName.get(), self.entryPassword.get())
-                self.account = Account(self.entryName.get())
+                id = create_user(self.entryName.get(), self.entryPassword.get())
+                self.account = Account(self.entryName.get(), id)
                 self.go_main_window()
             else :
                 self.lblWarning.configure(text = 'Er is iets mis gegaan')
@@ -640,8 +825,8 @@ def main():
 
             user = get_user(account[0], account[1]) # check if user excist in the database
             account = Account(user[0], user[1]) # login
-            #Main_Window(window, account) 
-            Add_User_Group_Window(window, account)
+            Main_Window(window, account) 
+            #Group_Management_Window(window, account)
 
         except ValueError:  # change this to something better
             pass

@@ -8,13 +8,13 @@ def calculate_points_by_range_date(start, end, userId):
     categories = select_all_from_category_by_userId(userId)
     points = []
     for category in categories:
-        if category[2] == 1: # time
+        if category[4] == 1: # time
             allTime = select_time_by_start_end(category[0], start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
             points.append(calculate_points_category(category, start, end, allTime, calculate_points_time))
-        elif category[3] == 1: # money
+        elif category[5] == 1: # money
             allMoneys = select_money_by_start_end(category[0], start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
             points.append(calculate_points_category(category, start, end, allMoneys, calculate_points_money))
-        elif category[4] == 1: # once
+        elif category[6] == 1: # once
             allOnces = select_once_by_start_end(category[0], start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
             points.append(calculate_points_category(category, start, end, allOnces, calculate_points_once))
     return combine_points_on_day(points)

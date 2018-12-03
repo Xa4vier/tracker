@@ -10,16 +10,18 @@ def insert_user(name, password):
     connection = get_connection()
     cursor = connection.cursor()
     cursor.execute('INSERT INTO User (name, password) VALUES(%s, %s)', params)
+    id = cursor.lastrowid
     connection.commit()
     connection.close()
+    return id
 
 # group 
 
 def insert_group(name):
-    params = (name)
+    params = (name,)
     connection = get_connection()
     cursor = connection.cursor()
-    cursor.execute(f"INSERT INTO GroupsOf (name) VALUES('{name}')")
+    cursor.execute("INSERT INTO GroupsOf (name) VALUES(%s)", params) # serieus beveilingslek
     id = cursor.lastrowid
     connection.commit()
     connection.close()
@@ -43,11 +45,11 @@ def insert_admin(userId, groupId):
 
 # category
 
-def insert_category(name, time, money, once, pot, points, userId):
-    params = (name, time, money, once, pot, int(points), userId)
+def insert_category(name, time, money, once, pot, points, userId, groupId):
+    params = (name, time, money, once, pot, int(points), userId, groupId)
     connection = get_connection()
     cursor = connection.cursor()
-    cursor.execute('INSERT INTO Category (name, time, money, once, pot, points, userId) VALUES(%s, %s, %s, %s, %s, %s, %s)', params)
+    cursor.execute('INSERT INTO Category (name, time, money, once, pot, points, userId, groupId) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)', params)
     id = cursor.lastrowid
     connection.commit()
     connection.close()
